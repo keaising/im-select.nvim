@@ -29,13 +29,13 @@ Plug 'keaising/im-select.nvim'
 ## 3. Config
 
 ```lua
-require('im-select').setup()
+require('im_select').setup()
 ```
 
 Set your default Input Method, if not set, defalut `com.apple.keylayout.ABC`
 
 ```lua
-require('im-select').setup {
+require('im_select').setup {
 	default_im_select  = "com.apple.keylayout.ABC",
 }
 ```
