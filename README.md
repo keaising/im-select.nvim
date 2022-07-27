@@ -2,9 +2,11 @@
 
 Switch Input Method automatically depends on Neovim's edit mode.
 
-Only works for macOS and Neovim.
+The old vim plugins (such as [im-select](https://github.com/daipeihust/im-select)) works weird on my Macbook, so I just create this im-select in pure lua for Neovim, it works charmly!
 
-The old vim plugins (such as [im-select](https://github.com/daipeihust/im-select)) works weird on my Macbook, so I just create this im-select in pure lua, it works charmly!
+Current version only works for Neovim on macOS. 
+
+Linux support is welcome!
 
 ## 1. Install binary `im-select`
 
