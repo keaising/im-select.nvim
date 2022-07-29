@@ -8,9 +8,9 @@ Current version only works for Neovim on macOS.
 
 Linux support is welcome!
 
-## 1. Install binary `im-select`
+## 1. Install binary
 
-Go to [im-select](https://github.com/daipeihust/im-select) to install execute binary `im-select`
+Please install execute binary `im-select` first! Download URL:  [im-select](https://github.com/daipeihust/im-select)
 
 ## 2. Install plugin
 
