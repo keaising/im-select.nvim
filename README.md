@@ -36,7 +36,8 @@ Set your default Input Method, if not set, defalut `com.apple.keylayout.ABC`
 
 ```lua
 require('im_select').setup {
-	default_im_select  = "com.apple.keylayout.ABC",
+	default_im_select  = "com.apple.keylayout.ABC", -- IM will be set to `default_im_select` when `EnterVim` or `InsertLeave`
+	disable_auto_restore = 0,                       -- set to 1 if you don't want restore IM status when `InsertEnter`
 }
 ```
 

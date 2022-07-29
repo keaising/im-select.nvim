@@ -9,29 +9,39 @@ M.setup = function(opts)
 		return
 	end
 
-	if vim.fn.executable('im-select') ~= 1 then
-		vim.api.nvim_err_writeln([[`im-select` not found!
-You can install it at: https://github.com/daipeihust/im-select ]])
+	if vim.fn.executable("im-select") ~= 1 then
+		vim.api.nvim_err_writeln(
+			[[please install `im-select` first, repo url: https://github.com/daipeihust/im-select]]
+		)
 		return
 	end
 
+	-- config
 	local default_im_select = "com.apple.keylayout.ABC"
-	if opts ~= nil and opts.im_select_default_im_select ~= nil then
-		default_im_select = opts.im_select_default_im_select
+	if opts ~= nil and opts.default_im_select ~= nil then
+		default_im_select = opts.default_im_select
 	end
 
-	vim.api.nvim_create_autocmd({ "InsertEnter " }, {
-		callback = function()
-			local current_select = all_trim(vim.fn.system({ "im-select" }))
-			local save = vim.g["im_select_current_im_select"]
+	local auto_restore = true
+	if opts ~= nil and opts.disable_auto_restore == 1 then
+		auto_restore = false
+	end
 
-			if current_select ~= save then
-				vim.fn.system({ "im-select", save })
-			end
-		end,
-	})
+	-- set autocmd
+	if auto_restore then
+		vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+			callback = function()
+				local current_select = all_trim(vim.fn.system({ "im-select" }))
+				local save = vim.g["im_select_current_im_select"]
 
-	vim.api.nvim_create_autocmd({ "InsertLeave " }, {
+				if current_select ~= save then
+					vim.fn.system({ "im-select", save })
+				end
+			end,
+		})
+	end
+
+	vim.api.nvim_create_autocmd({ "InsertLeave", "VimEnter" }, {
 		callback = function()
 			local current_select = all_trim(vim.fn.system({ "im-select" }))
 			vim.api.nvim_set_var("im_select_current_im_select", current_select)
