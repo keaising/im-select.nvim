@@ -10,7 +10,9 @@ Linux support is welcome!
 
 ## 1. Install binary
 
-Please install execute binary `im-select` first! Download URL:  [im-select](https://github.com/daipeihust/im-select)
+Please install execute binary `im-select` first!
+
+Download URL:  [im-select](https://github.com/daipeihust/im-select)
 
 ## 2. Install plugin
 
@@ -28,16 +30,21 @@ Plug 'keaising/im-select.nvim'
 
 ## 3. Config
 
+Simple setup with default value works well enough:
+
 ```lua
 require('im_select').setup()
 ```
 
-Set your default Input Method, if not set, defalut `com.apple.keylayout.ABC`
+If you want to change some settings: 
 
 ```lua
 require('im_select').setup {
-	default_im_select  = "com.apple.keylayout.ABC", -- IM will be set to `default_im_select` when `EnterVim` or `InsertLeave`
-	disable_auto_restore = 0,                       -- set to 1 if you don't want restore IM status when `InsertEnter`
+	-- IM will be set to `default_im_select` in `normal` mode(`EnterVim` or `InsertLeave`)
+	default_im_select  = "com.apple.keylayout.ABC",
+
+	-- Set to 1 if you don't want restore IM status when `InsertEnter`
+	disable_auto_restore = 0,
 }
 ```
 
