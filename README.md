@@ -4,9 +4,9 @@ Switch Input Method automatically depends on Neovim's edit mode.
 
 The old vim plugins (such as [im-select](https://github.com/daipeihust/im-select)) works weird on my Macbook, so I just create this im-select in pure lua for Neovim, it works charmly!
 
-Current version only works for Neovim on macOS. 
+Current version only works for Neovim on macOS and Windows. 
 
-Linux support is welcome!
+Linux/wsl support is welcome!
 
 ## 1. Install binary
 
@@ -41,6 +41,8 @@ If you want to change some settings:
 ```lua
 require('im_select').setup {
 	-- IM will be set to `default_im_select` in `normal` mode(`EnterVim` or `InsertLeave`)
+	-- For Windows, default: "1003", aka: English US Keyboard
+	-- You can use `im-select` in cli to get the IM name of you preferred
 	default_im_select  = "com.apple.keylayout.ABC",
 
 	-- Set to 1 if you don't want restore IM status when `InsertEnter`

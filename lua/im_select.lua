@@ -5,7 +5,7 @@ local function all_trim(s)
 end
 
 M.setup = function(opts)
-	if vim.fn.has("macunix") ~= 1 then
+	if vim.fn.has("macunix") ~= 1 and vim.fn.has('win32') ~= 1 then
 		return
 	end
 
@@ -18,6 +18,9 @@ M.setup = function(opts)
 
 	-- config
 	local default_im_select = "com.apple.keylayout.ABC"
+	if vim.fn.has('win32') == 1 then
+		default_im_select = '1033'
+	end
 	if opts ~= nil and opts.default_im_select ~= nil then
 		default_im_select = opts.default_im_select
 	end
