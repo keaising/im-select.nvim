@@ -9,7 +9,7 @@ local function determine_os()
 		return "macOS"
 	elseif vim.fn.has("win32") == 1 then
 		return "Windows"
-	elseif vim.fn.has("unix") == 1 and vim.fn.empty("$WSL_DISTRO_NAME") ~= 1 then
+	elseif vim.fn.has("wsl") == 1 then
 		return "WSL"
 	else
 		return "Linux"
