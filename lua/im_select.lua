@@ -77,7 +77,7 @@ M.setup = function(opts)
 
 	-- set autocmd
 	if C.auto_restore then
-		vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+		vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter" }, {
 			callback = function()
 				local current_select = all_trim(vim.fn.system({ C.default_command }))
 				local save = vim.g["im_select_current_im_select"]
@@ -89,7 +89,7 @@ M.setup = function(opts)
 		})
 	end
 
-	vim.api.nvim_create_autocmd({ "InsertLeave", "VimEnter" }, {
+	vim.api.nvim_create_autocmd({ "InsertLeave", "VimEnter", "CmdlineLeave" }, {
 		callback = function()
 			local current_select = all_trim(vim.fn.system({ C.default_command }))
 			vim.api.nvim_set_var("im_select_current_im_select", current_select)
