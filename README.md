@@ -1,10 +1,10 @@
 # im-select.nvim
 
-Switch Input Method automatically depends on Neovim's edit mode.
+Switch Input Method automatically depends on NeoVim's edit mode.
 
-The old vim plugins (such as [im-select](https://github.com/daipeihust/im-select)) works weird on my Macbook, so I just create this im-select in pure lua for Neovim, it works charmly!
+The old vim plugins (such as [im-select](https://github.com/daipeihust/im-select)) works weird on my Macbook, so I just create this im-select in pure lua for NeoVim, it works charmingly!
 
-Current version works for Neovim on:
+Current version works for NeoVim on:
 
 + macOS
 + Windows and WSL
@@ -14,11 +14,13 @@ Other frameworks on Linux's support is welcome!
 
 ## 1. Install binary
 
-Please install execute binary `im-select` first
+For Windows and macOS user, please install executable file `im-select` first
 
 Download URL:  [im-select](https://github.com/daipeihust/im-select)
 
-Note: Putting binary into some path which Neovim can read from, you can detect it in Neovim by:
+For fcitx5 user, you need to install fcitx5
+
+Note: You need to put the executable file in a path that NeoVim can read from, and then you can find it in NeoVim by doing the following:
 
 ```
 # Windows / WSL
@@ -32,6 +34,12 @@ Note: Putting binary into some path which Neovim can read from, you can detect i
 ```
 
 ## 2. Install plugin
+
+Lazy
+
+```lua
+'keaising/im-select.nvim'
+```
 
 Packer
 
@@ -47,7 +55,7 @@ Plug 'keaising/im-select.nvim'
 
 ## 3. Config
 
-Setup with default value works well enough:
+Setup is a must, and it works well enough with the default settings:
 
 ```lua
 require('im_select').setup()
