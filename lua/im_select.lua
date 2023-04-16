@@ -36,6 +36,8 @@ local C = {
 	default_command = "im-select.exe",
 	-- default input method in normal mode.
 	default_method_selected = "1033",
+	-- set input method to default on FocusGained
+	set_default_im_on_focus_gained = false,
 	-- auto restore to method to latest used in insert mode when InsertEnter
 	auto_restore = true,
 }
@@ -73,6 +75,10 @@ local function set_opts(opts)
 
 	if opts.default_command ~= nil then
 		C.default_command = opts.default_command
+	end
+
+	if opts.set_default_im_on_focus_gained == 1 then
+		C.set_default_im_on_focus_gained = true
 	end
 end
 
@@ -123,7 +129,11 @@ M.setup = function(opts)
 		})
 	end
 
-	vim.api.nvim_create_autocmd({ "InsertLeave", "VimEnter", "CmdlineLeave" }, {
+	local events = { "InsertLeave", "VimEnter", "CmdlineLeave" }
+	if C.set_default_im_on_focus_gained then
+		table.insert(events, "FocusGained")
+	end
+	vim.api.nvim_create_autocmd(events, {
 		callback = function()
 			local current_select = get_current_select(C.default_command)
 			vim.api.nvim_set_var("im_select_current_im_select", current_select)
