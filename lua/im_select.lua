@@ -36,10 +36,11 @@ local C = {
     default_command = "im-select.exe",
     -- default input method in normal mode.
     default_method_selected = "1033",
-    -- set input method to default on FocusGained
-    set_default_im_on_focus_gained = false,
-    -- auto restore to method to latest used in insert mode when InsertEnter
-    auto_restore = true,
+
+    -- Restore the default input method state when the following events are triggered
+    set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
+    -- Restore the previous used input method state when the following events are triggered
+    set_previous_events = { "InsertEnter" },
 }
 
 local function set_default_config()
@@ -69,16 +70,16 @@ local function set_opts(opts)
         C.default_method_selected = opts.default_im_select
     end
 
-    if opts.disable_auto_restore == 1 or opts.disable_auto_restore == true then
-        C.auto_restore = false
-    end
-
     if opts.default_command ~= nil then
         C.default_command = opts.default_command
     end
 
-    if opts.set_default_im_on_focus_gained == true then
-        C.set_default_im_on_focus_gained = true
+    if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
+        C.set_default_events = opts.set_default_events
+    end
+
+    if opts.set_previous_events ~= nil and type(opts.set_previous_events) == "table" then
+        C.set_previous_events = opts.set_previous_events
     end
 end
 
@@ -100,18 +101,18 @@ local function change_im_select(cmd, method)
     end
 end
 
-local function restore_default_im_status()
+local function restore_default_im()
     local current = get_current_select(C.default_command)
-    vim.api.nvim_set_var("im_select_saved_status", current)
+    vim.api.nvim_set_var("im_select_saved_state", current)
 
     if current ~= C.default_method_selected then
         change_im_select(C.default_command, C.default_method_selected)
     end
 end
 
-local function restore_previous_saved()
+local function restore_previous_im()
     local current = get_current_select(C.default_command)
-    local saved = vim.g["im_select_saved_status"]
+    local saved = vim.g["im_select_saved_state"]
 
     if current ~= saved then
         change_im_select(C.default_command, saved)
@@ -136,22 +137,19 @@ M.setup = function(opts)
     -- set autocmd
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
-    if C.auto_restore then
-        vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter", "FocusLost" }, {
-            callback = restore_previous_saved,
+    if #C.set_previous_events > 0 then
+        vim.api.nvim_create_autocmd(C.set_previous_events, {
+            callback = restore_previous_im,
             group = group_id,
         })
     end
 
-    local restore_default_events = { "InsertLeave", "VimEnter", "CmdlineLeave" }
-    if C.set_default_im_on_focus_gained then
-        table.insert(restore_default_events, "FocusGained")
+    if #C.set_default_events > 0 then
+        vim.api.nvim_create_autocmd(C.set_default_events, {
+            callback = restore_default_im,
+            group = group_id,
+        })
     end
-
-    vim.api.nvim_create_autocmd(restore_default_events, {
-        callback = restore_default_im_status,
-        group = group_id,
-    })
 end
 
 return M

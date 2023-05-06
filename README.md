@@ -61,7 +61,7 @@ Setup is a must, and it works well enough with the default settings:
 require('im_select').setup()
 ```
 
-If you want to change some settings:
+Default config:
 
 ```lua
 require('im_select').setup {
@@ -73,8 +73,9 @@ require('im_select').setup {
     -- You can use `im-select` or `fcitx5-remote -n` to get the IM's name you preferred
     default_im_select  = "com.apple.keylayout.ABC",
 
-    -- Set to `true` if you don't want restore IM status when `InsertEnter`
-    disable_auto_restore = false,
+    -- BREAK CHANGE Alert:
+    -- I'm sorry but this options was removed, use more powerful `set_previous_events` please
+    -- disable_auto_restore = false,
 
     -- Can be binary's name or binary's full path,
     -- e.g. 'im-select' or '/usr/local/bin/im-select'
@@ -83,8 +84,12 @@ require('im_select').setup {
     -- For Linux, default: "fcitx5-remote"
     default_command = 'im-select.exe'
 
-    -- If you would like set IM to `default_im_select` when back to NeoVim from other app,
-    -- set this option to `true`
-    set_default_im_on_focus_gained = false
+    -- Restore the default input method state when the following events are triggered
+    set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
+
+    -- Restore the previous used input method state when the following events are triggered
+    -- if you don't want to restore previous used im in Insert mode,
+    -- just let it empty `set_previous_events = {}`
+    set_previous_events = { "InsertEnter" },
 }
 ```
