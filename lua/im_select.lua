@@ -41,6 +41,8 @@ local C = {
     set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
     -- Restore the previous used input method state when the following events are triggered
     set_previous_events = { "InsertEnter" },
+
+    keep_quiet_on_no_binary = false,
 }
 
 local function set_default_config()
@@ -80,6 +82,10 @@ local function set_opts(opts)
 
     if opts.set_previous_events ~= nil and type(opts.set_previous_events) == "table" then
         C.set_previous_events = opts.set_previous_events
+    end
+
+    if opts.keep_quiet_on_no_binary then
+        C.keep_quiet_on_no_binary = true
     end
 end
 
@@ -127,7 +133,7 @@ M.setup = function(opts)
     set_default_config()
     set_opts(opts)
 
-    if vim.fn.executable(C.default_command) ~= 1 then
+    if vim.fn.executable(C.default_command) ~= 1 and !C.keep_quiet_on_no_binary then
         vim.api.nvim_err_writeln(
             [[please install `im-select` binary first, repo url: https://github.com/daipeihust/im-select]]
         )
