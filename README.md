@@ -57,17 +57,13 @@ Plug 'keaising/im-select.nvim'
 
 ### Setup
 
-Setup is a must, and it works well enough with the default settings:
+Setup is a must, and it works well enough with the default config:
 
 ```lua
 require('im_select').setup()
 ```
 
 ### Default config
-
-BREAK CHANGE Alert:
-
-I'm sorry to import a break change, `disable_auto_restore` was removed, it can be replaced with more powerful `set_previous_events`
 
 ```lua
 require('im_select').setup {
@@ -91,10 +87,16 @@ require('im_select').setup {
 
     -- Restore the previous used input method state when the following events are triggered
     -- if you don't want to restore previous used im in Insert mode,
-    -- e.g. removed `disable_auto_restore = 1`, just let it empty `set_previous_events = {}`
+    -- e.g. deprecated `disable_auto_restore = 1`, just let it empty `set_previous_events = {}`
     set_previous_events = { "InsertEnter" },
 
     -- Show notification about how to install executable binary when binary is missing
     keep_quiet_on_no_binary = false
 }
 ```
+
+### BREAK CHANGE
+
+So sorry for importing a break change
+
+- 2023.05.05: `disable_auto_restore` is deprecated, it can be replaced with more powerful `set_previous_events`, it will be removed in 2023.06

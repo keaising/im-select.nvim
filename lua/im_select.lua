@@ -84,6 +84,12 @@ local function set_opts(opts)
         C.set_previous_events = opts.set_previous_events
     end
 
+    -- deprecated
+    if opts.disable_auto_restore == 1 then
+        print("[im-select]: `disable_auto_restore` is deprecated, use `set_previous_events` instead")
+        C.set_previous_events = {}
+    end
+
     if opts.keep_quiet_on_no_binary then
         C.keep_quiet_on_no_binary = true
     end
@@ -100,7 +106,6 @@ end
 
 local function change_im_select(cmd, method)
     if cmd:find("fcitx5-remote", 1, true) then
-        print("change in im-select", cmd, method)
         return vim.fn.system({ cmd, "-s", method })
     else
         return vim.fn.system({ cmd, method })
@@ -133,9 +138,9 @@ M.setup = function(opts)
     set_default_config()
     set_opts(opts)
 
-    if vim.fn.executable(C.default_command) ~= 1 and !C.keep_quiet_on_no_binary then
+    if vim.fn.executable(C.default_command) ~= 1 and not C.keep_quiet_on_no_binary then
         vim.api.nvim_err_writeln(
-            [[please install `im-select` binary first, repo url: https://github.com/daipeihust/im-select]]
+            [[[im-select]: please install `im-select` binary first, repo url: https://github.com/daipeihust/im-select]]
         )
         return
     end
