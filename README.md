@@ -55,13 +55,19 @@ Plug 'keaising/im-select.nvim'
 
 ## 3. Config
 
+### Setup
+
 Setup is a must, and it works well enough with the default settings:
 
 ```lua
 require('im_select').setup()
 ```
 
-Default config:
+### Default config
+
+BREAK CHANGE Alert:
+
+I'm sorry to import a break change, `disable_auto_restore` was removed, it can be replaced with more powerful `set_previous_events`
 
 ```lua
 require('im_select').setup {
@@ -72,10 +78,6 @@ require('im_select').setup {
     -- For Linux, default: "keyboard-us"
     -- You can use `im-select` or `fcitx5-remote -n` to get the IM's name you preferred
     default_im_select  = "com.apple.keylayout.ABC",
-
-    -- BREAK CHANGE Alert:
-    -- I'm sorry but this options was removed, use more powerful `set_previous_events` please
-    -- disable_auto_restore = false,
 
     -- Can be binary's name or binary's full path,
     -- e.g. 'im-select' or '/usr/local/bin/im-select'
@@ -89,7 +91,7 @@ require('im_select').setup {
 
     -- Restore the previous used input method state when the following events are triggered
     -- if you don't want to restore previous used im in Insert mode,
-    -- just let it empty `set_previous_events = {}`
+    -- e.g. removed `disable_auto_restore = 1`, just let it empty `set_previous_events = {}`
     set_previous_events = { "InsertEnter" },
 }
 ```
