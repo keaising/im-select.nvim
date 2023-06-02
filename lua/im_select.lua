@@ -138,10 +138,12 @@ M.setup = function(opts)
     set_default_config()
     set_opts(opts)
 
-    if vim.fn.executable(C.default_command) ~= 1 and not C.keep_quiet_on_no_binary then
-        vim.api.nvim_err_writeln(
-            [[[im-select]: please install `im-select` binary first, repo url: https://github.com/daipeihust/im-select]]
-        )
+    if vim.fn.executable(C.default_command) ~= 1 then
+        if not C.keep_quiet_on_no_binary then
+            vim.api.nvim_err_writeln(
+                [[[im-select]: please install `im-select` binary first, repo url: https://github.com/daipeihust/im-select]]
+            )
+        end
         return
     end
 
