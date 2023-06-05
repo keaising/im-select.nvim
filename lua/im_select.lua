@@ -23,9 +23,9 @@ local function is_supported()
         return true
     end
 
-    -- only support fcitx5
+    -- only support fcitx5 and fcitx
     -- other frameworks are not support yet, PR welcome
-    if vim.fn.executable("fcitx5-remote") then
+    if vim.fn.executable("fcitx5-remote") or vim.fn.executable("fcitx-remote") then
         return true
     end
 end
@@ -55,11 +55,16 @@ local function set_default_config()
         C.default_command = "im-select.exe"
         C.default_method_selected = "1033"
     else
-        -- fcitx5-remote -n: rime/keyboard-us
-        -- fcitx5-remote -s rime
-        -- fcitx5-remote -s keyboard-us
-        C.default_command = "fcitx5-remote"
-        C.default_method_selected = "keyboard-us"
+        -- 0 for close, 1 for inactive, 2 for active
+        C.default_command = "fcitx-remote"
+        C.default_method_selected = "1"
+        if vim.fn.executable("fcitx5-remote") == 1 then
+            -- fcitx5-remote -n: rime/keyboard-us
+            -- fcitx5-remote -s rime
+            -- fcitx5-remote -s keyboard-us
+            C.default_command = "fcitx5-remote"
+            C.default_method_selected = "keyboard-us"
+        end
     end
 end
 
@@ -107,6 +112,14 @@ end
 local function change_im_select(cmd, method)
     if cmd:find("fcitx5-remote", 1, true) then
         return vim.fn.system({ cmd, "-s", method })
+    elseif cmd:find("fcitx-remote", 1, true) then
+        -- limited support for fcitx, can only switch for inactive and active
+        if method == "1" then
+            method = "-c"
+        else
+            method = "-o"
+        end
+        return vim.fn.system({ cmd, method })
     else
         return vim.fn.system({ cmd, method })
     end
