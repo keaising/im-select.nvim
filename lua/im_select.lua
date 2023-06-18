@@ -165,14 +165,14 @@ M.setup = function(opts)
 
     if #C.set_previous_events > 0 then
         vim.api.nvim_create_autocmd(C.set_previous_events, {
-            callback = restore_previous_im,
+            callback = vim.schedule_wrap(restore_previous_im),
             group = group_id,
         })
     end
 
     if #C.set_default_events > 0 then
         vim.api.nvim_create_autocmd(C.set_default_events, {
-            callback = restore_default_im,
+            callback = vim.schedule_wrap(restore_default_im),
             group = group_id,
         })
     end
