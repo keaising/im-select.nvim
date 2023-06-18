@@ -111,7 +111,7 @@ end
 
 local function change_im_select(cmd, method)
     if cmd:find("fcitx5-remote", 1, true) then
-        return vim.fn.system({ cmd, "-s", method })
+        return vim.fn.jobstart({ cmd, "-s", method }, { detach = true })
     elseif cmd:find("fcitx-remote", 1, true) then
         -- limited support for fcitx, can only switch for inactive and active
         if method == "1" then
@@ -119,9 +119,9 @@ local function change_im_select(cmd, method)
         else
             method = "-o"
         end
-        return vim.fn.system({ cmd, method })
+        return vim.fn.jobstart({ cmd, method }, { detach = true })
     else
-        return vim.fn.system({ cmd, method })
+        return vim.fn.jobstart({ cmd, method }, { detach = true })
     end
 end
 
