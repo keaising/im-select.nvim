@@ -23,8 +23,11 @@ For fcitx5 user, you need to install fcitx5
 
 Note: You need to put the executable file in a path that NeoVim can read from, and then you can find it in NeoVim by doing the following:
 
-```
-# Windows / WSL
+```shell
+# Windows(NeoVim on Windows use Command Prompt as default shell)
+:!where im-select.exe
+
+# WSL
 :!which im-select.exe
 
 # macOS
