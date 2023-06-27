@@ -110,8 +110,9 @@ local function get_current_select(cmd)
 end
 
 local function change_im_select(cmd, method)
+    local command = {}
     if cmd:find("fcitx5-remote", 1, true) then
-        return vim.fn.jobstart({ cmd, "-s", method }, { detach = true })
+        command = { cmd, "-s", method }
     elseif cmd:find("fcitx-remote", 1, true) then
         -- limited support for fcitx, can only switch for inactive and active
         if method == "1" then
@@ -119,10 +120,11 @@ local function change_im_select(cmd, method)
         else
             method = "-o"
         end
-        return vim.fn.jobstart({ cmd, method }, { detach = true })
+        command = { cmd, method }
     else
-        return vim.fn.jobstart({ cmd, method }, { detach = true })
+        command = { cmd, method }
     end
+    return vim.fn.jobstart(table.concat(command, " "), { detach = true })
 end
 
 local function restore_default_im()
