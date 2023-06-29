@@ -23,10 +23,13 @@ local function is_supported()
         return true
     end
 
-    -- only support fcitx5, fcitx and ibus
+    -- Support fcitx5, fcitx and ibus in Linux
     -- other frameworks are not support yet, PR welcome
-    if vim.fn.executable("fcitx5-remote") or vim.fn.executable("fcitx-remote") or vim.fn.executable("ibus") then
-        return true
+    local ims = { "fcitx5-remote", "fcitx-remote", "ibus" }
+    for _, im in ipairs(ims) do
+        if vim.fn.executable(im) then
+            return true
+        end
     end
 end
 
@@ -106,14 +109,15 @@ local function set_opts(opts)
 end
 
 local function get_current_select(cmd)
-    -- fcitx5 has its own parameters
+    local command = {}
     if cmd:find("fcitx5-remote", 1, true) ~= nil then
-        return all_trim(vim.fn.system({ cmd, "-n" }))
+        command = { cmd, "-n" }
     elseif cmd:find("ibus", 1, true) ~= nil then
-        return all_trim(vim.fn.system({ cmd, "engine" }))
+        command = { cmd, "engine" }
     else
-        return all_trim(vim.fn.system({ cmd }))
+        command = { cmd }
     end
+    return all_trim(vim.fn.system(command))
 end
 
 local function change_im_select(cmd, method)

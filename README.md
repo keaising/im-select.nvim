@@ -8,8 +8,10 @@ Current version works for NeoVim on:
 
 - macOS
 - Windows and WSL
-- Fcitx5, ibus on Linux
-- Fcitx on Linux(only switch between inactive and active)
+- Linux
+  - Fcitx5
+  - Fcitx(only switch between inactive and active)
+  - IBus
 
 Other frameworks on Linux's support is welcome!
 
@@ -19,7 +21,7 @@ For Windows and macOS user, please install executable file `im-select` first
 
 Download URL: [im-select](https://github.com/daipeihust/im-select)
 
-For fcitx5 user, you need to install fcitx5
+For Linux user, you need to install fcitx5, fcitx or ibus
 
 Note: You need to put the executable file in a path that NeoVim can read from, and then you can find it in NeoVim by doing the following:
 
@@ -34,10 +36,11 @@ Note: You need to put the executable file in a path that NeoVim can read from, a
 :!which im-select
 
 # Linux
-# if you use fcitx5 or fcitx
+# fcitx5
 :!which fcitx5-remote
+# fcitx
 :!which fcitx-remote
-# if you use ibus
+# ibus
 :!which ibus
 ```
 
