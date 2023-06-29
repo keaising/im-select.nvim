@@ -23,9 +23,9 @@ local function is_supported()
         return true
     end
 
-    -- only support fcitx5 and fcitx
+    -- only support fcitx5, fcitx and ibus
     -- other frameworks are not support yet, PR welcome
-    if vim.fn.executable("fcitx5-remote") or vim.fn.executable("fcitx-remote") then
+    if vim.fn.executable("fcitx5-remote") or vim.fn.executable("fcitx-remote") or vim.fn.executable("ibus") then
         return true
     end
 end
@@ -64,6 +64,11 @@ local function set_default_config()
             -- fcitx5-remote -s keyboard-us
             C.default_command = "fcitx5-remote"
             C.default_method_selected = "keyboard-us"
+        elseif vim.fn.executable("ibus") == 1 then
+            -- ibus engine xkb:us::eng
+            -- ibus engine rime
+            C.default_command = "ibus"
+            C.default_method_selected = "xkb:us::eng"
         end
     end
 end
@@ -104,6 +109,8 @@ local function get_current_select(cmd)
     -- fcitx5 has its own parameters
     if cmd:find("fcitx5-remote", 1, true) ~= nil then
         return all_trim(vim.fn.system({ cmd, "-n" }))
+    elseif cmd:find("ibus", 1, true) ~= nil then
+        return all_trim(vim.fn.system({ cmd, "engine" }))
     else
         return all_trim(vim.fn.system({ cmd }))
     end
@@ -121,6 +128,8 @@ local function change_im_select(cmd, method)
             method = "-o"
         end
         command = { cmd, method }
+    elseif cmd:find("ibus", 1, true) then
+        command = { cmd, "engine", method }
     else
         command = { cmd, method }
     end

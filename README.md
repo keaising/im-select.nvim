@@ -8,7 +8,7 @@ Current version works for NeoVim on:
 
 - macOS
 - Windows and WSL
-- Fcitx5 on Linux
+- Fcitx5, ibus on Linux
 - Fcitx on Linux(only switch between inactive and active)
 
 Other frameworks on Linux's support is welcome!
@@ -34,8 +34,11 @@ Note: You need to put the executable file in a path that NeoVim can read from, a
 :!which im-select
 
 # Linux
+# if you use fcitx5 or fcitx
 :!which fcitx5-remote
 :!which fcitx-remote
+# if you use ibus
+:!which ibus
 ```
 
 ## 2. Install plugin
@@ -76,7 +79,7 @@ require('im_select').setup {
     -- IM will be set to `default_im_select` in `normal` mode
     -- For Windows/WSL, default: "1033", aka: English US Keyboard
     -- For macOS, default: "com.apple.keylayout.ABC", aka: US
-    -- For Linux, default: "keyboard-us" for Fcitx5 or "1" for Fcitx
+    -- For Linux, default: "keyboard-us" for Fcitx5 or "1" for Fcitx or "xkb:us::eng" for ibus
     -- You can use `im-select` or `fcitx5-remote -n` to get the IM's name you preferred
     default_im_select  = "com.apple.keylayout.ABC",
 
@@ -84,7 +87,7 @@ require('im_select').setup {
     -- e.g. 'im-select' or '/usr/local/bin/im-select'
     -- For Windows/WSL, default: "im-select.exe"
     -- For macOS, default: "im-select"
-    -- For Linux, default: "fcitx5-remote" or "fcitx-remote"
+    -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or "ibus"
     default_command = 'im-select.exe',
 
     -- Restore the default input method state when the following events are triggered
