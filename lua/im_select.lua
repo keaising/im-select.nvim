@@ -137,7 +137,7 @@ local function change_im_select(cmd, method)
     else
         command = { cmd, method }
     end
-    return vim.fn.jobstart(table.concat(command, " "), { detach = true })
+    return vim.fn.jobstart(table.concat(command, " "))
 end
 
 local function restore_default_im()
