@@ -46,6 +46,8 @@ local C = {
     set_previous_events = { "InsertEnter" },
 
     keep_quiet_on_no_binary = false,
+
+    async_switch_im = true,
 }
 
 local function set_default_config()
@@ -106,6 +108,10 @@ local function set_opts(opts)
     if opts.keep_quiet_on_no_binary then
         C.keep_quiet_on_no_binary = true
     end
+
+    if opts.async_switch_im ~= nil and opts.async_switch_im == false then
+        C.async_switch_im = false
+    end
 end
 
 local function get_current_select(cmd)
@@ -137,7 +143,13 @@ local function change_im_select(cmd, method)
     else
         command = { cmd, method }
     end
-    return vim.fn.jobstart(table.concat(command, " "), { detach = true })
+
+    if C.async_switch_im then
+        vim.fn.jobstart(table.concat(command, " "), { detach = true })
+    else
+        local jobid = vim.fn.jobstart(table.concat(command, " "), { detach = false })
+        vim.fn.jobwait({ jobid }, 200)
+    end
 end
 
 local function restore_default_im()
@@ -168,9 +180,7 @@ M.setup = function(opts)
 
     if vim.fn.executable(C.default_command) ~= 1 then
         if not C.keep_quiet_on_no_binary then
-            vim.api.nvim_err_writeln(
-                [[[im-select]: please install `im-select` binary first, repo url: https://github.com/daipeihust/im-select]]
-            )
+            vim.api.nvim_err_writeln([[[im-select]: binary tools missed, please follow installation manual in README]])
         end
         return
     end
