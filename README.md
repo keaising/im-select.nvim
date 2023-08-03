@@ -15,32 +15,128 @@ Current version works for NeoVim on:
 
 Other frameworks on Linux's support is welcome!
 
-## 1. Install binary
+## 1. Install and check binary
 
-For Windows and macOS user, please install executable file `im-select` first
+`im-select.nvim` use binary tools to switch IM, you need to:
+
+1. Install binary tools on different OS.
+2. Make sure the executable file in a path that NeoVim can read them.
+
+### 1.1 Windows / WSL
+
+#### install
+
+Please install `im-select.exe`
 
 Download URL: [im-select](https://github.com/daipeihust/im-select)
 
-For Linux user, you need to install fcitx5, fcitx or ibus
+#### check
 
-Note: You need to put the executable file in a path that NeoVim can read from, and then you can find it in NeoVim by doing the following:
+NeoVim on Windows use Command Prompt as default shell, run following command in your Command Prompt
 
-```shell
-# Windows(NeoVim on Windows use Command Prompt as default shell)
+```bash
+# find the command
+$ where im-select.exe
+
+# Get current im name
+$ im-select.exe
+
+# Try to switch to English keyboard
+$ im-select.exe 1033
+```
+
+Then test in NeoVim
+
+```bash
 :!where im-select.exe
 
-# WSL
-:!which im-select.exe
+:!im-select.exe 1003
+```
 
-# macOS
+### 1.2 macOS
+
+#### install
+
+Please install `im-select`
+
+Download URL: [im-select](https://github.com/daipeihust/im-select)
+
+#### check
+
+Check installation in bash/zsh
+
+```bash
+# find binary
+$ which im-select
+
+# Get current im name
+$ im-select
+
+# Try to switch to English keyboard
+$ im-select com.apple.keylayout.ABC
+```
+
+Check in NeoVim
+
+```bash
 :!which im-select
+```
 
-# Linux
-# fcitx5
-:!which fcitx5-remote
-# fcitx
-:!which fcitx-remote
-# ibus
+### 1.3 Linux
+
+#### install
+
+Please install and config one of Input Methods: Fcitx / Fcitx5 / IBus
+
+#### check
+
+Check installation in bash/zsh
+
+**> Fcitx**
+
+```bash
+# find
+$ which fcitx-remote
+
+# activate IM
+$ fcitx-remote -o
+
+# inactivate IM
+$ fcitx-remote -c
+```
+
+**> Fcitx5**
+
+```bash
+# find
+$ which fcitx5-remote
+
+# Get current im name
+$ fcitx5-remote -n
+
+# Try to switch to English keyboard
+$ fcitx5-remote keyboard-us
+```
+
+**> IBus**
+
+```bash
+# find
+$ which ibus
+
+# Get current im name
+$ ibus engine
+
+# Try to switch to English keyboard
+$ ibus xkb:us::eng
+```
+
+Check in NeoVim
+
+```bash
+# find
+:!which fcitx
+:!which fcitx5
 :!which ibus
 ```
 
