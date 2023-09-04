@@ -140,68 +140,55 @@ Check in NeoVim
 :!which ibus
 ```
 
-## 2. Install plugin
+## 2. Install and setup this plugin
 
-Lazy
-
-```lua
-'keaising/im-select.nvim'
-```
-
-Packer
+A good enough minimal config in Lazy.nvim
 
 ```lua
-use 'keaising/im-select.nvim'
+{
+    "keaising/im-select.nvim",
+    config = function()
+        require("im_select").setup({})
+    end,
+}
 ```
 
-Plug
-
-```vim
-Plug 'keaising/im-select.nvim'
-```
-
-## 3. Config
-
-### Setup
-
-Setup is a must, and it works well enough with the default config:
+Options with its default values
 
 ```lua
-require('im_select').setup()
-```
+{
+    "keaising/im-select.nvim",
+    config = function()
+        require('im_select').setup({
+            -- IM will be set to `default_im_select` in `normal` mode
+            -- For Windows/WSL, default: "1033", aka: English US Keyboard
+            -- For macOS, default: "com.apple.keylayout.ABC", aka: US
+            -- For Linux, default: "keyboard-us" for Fcitx5 or "1" for Fcitx or "xkb:us::eng" for ibus
+            -- You can use `im-select` or `fcitx5-remote -n` to get the IM's name you preferred
+            default_im_select  = "com.apple.keylayout.ABC",
 
-### Default config
+            -- Can be binary's name or binary's full path,
+            -- e.g. 'im-select' or '/usr/local/bin/im-select'
+            -- For Windows/WSL, default: "im-select.exe"
+            -- For macOS, default: "im-select"
+            -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or "ibus"
+            default_command = 'im-select.exe',
 
-```lua
-require('im_select').setup {
+            -- Restore the default input method state when the following events are triggered
+            set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
 
-    -- IM will be set to `default_im_select` in `normal` mode
-    -- For Windows/WSL, default: "1033", aka: English US Keyboard
-    -- For macOS, default: "com.apple.keylayout.ABC", aka: US
-    -- For Linux, default: "keyboard-us" for Fcitx5 or "1" for Fcitx or "xkb:us::eng" for ibus
-    -- You can use `im-select` or `fcitx5-remote -n` to get the IM's name you preferred
-    default_im_select  = "com.apple.keylayout.ABC",
+            -- Restore the previous used input method state when the following events are triggered
+            -- if you don't want to restore previous used im in Insert mode,
+            -- e.g. deprecated `disable_auto_restore = 1`, just let it empty `set_previous_events = {}`
+            set_previous_events = { "InsertEnter" },
 
-    -- Can be binary's name or binary's full path,
-    -- e.g. 'im-select' or '/usr/local/bin/im-select'
-    -- For Windows/WSL, default: "im-select.exe"
-    -- For macOS, default: "im-select"
-    -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or "ibus"
-    default_command = 'im-select.exe',
+            -- Show notification about how to install executable binary when binary is missing
+            keep_quiet_on_no_binary = false,
 
-    -- Restore the default input method state when the following events are triggered
-    set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
-
-    -- Restore the previous used input method state when the following events are triggered
-    -- if you don't want to restore previous used im in Insert mode,
-    -- e.g. deprecated `disable_auto_restore = 1`, just let it empty `set_previous_events = {}`
-    set_previous_events = { "InsertEnter" },
-
-    -- Show notification about how to install executable binary when binary is missing
-    keep_quiet_on_no_binary = false,
-
-    -- Async run `default_command` to switch IM or not
-    async_switch_im = true
+            -- Async run `default_command` to switch IM or not
+            async_switch_im = true
+        })
+    end,
 }
 ```
 
@@ -209,4 +196,4 @@ require('im_select').setup {
 
 So sorry for importing a break change
 
-- 2023.05.05: `disable_auto_restore` is deprecated, it can be replaced with more powerful `set_previous_events`, it will be removed in 2023.06
+- 2023.05.05: `disable_auto_restore` is deprecated, it can be replaced with more powerful `set_previous_events`
