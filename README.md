@@ -198,14 +198,12 @@ Options with its default values
 ```
 
 ## 3. Current Issue
+
 Currently, there're some issues when using the plugin inside Neovim on Windows and cannot be always reproduced:
-https://github.com/keaising/im-select.nvim/issues/17
 
-Please turn on/off the `async_switch_im` param and see if it helps.
+- https://github.com/keaising/im-select.nvim/issues/17
+- https://github.com/keaising/im-select.nvim/issues/16
 
+Please try to turn on/off the `async_switch_im` and see if it helps.
 
-## BREAK CHANGE
-
-So sorry for importing a break change
-
-- 2023.05.05: `disable_auto_restore` is deprecated, it can be replaced with more powerful `set_previous_events`
+Because I don't use Neovim on Windows, so if anyone would like to help debug and fix this issue, pull request is very welcome.
