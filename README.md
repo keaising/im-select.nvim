@@ -24,15 +24,16 @@ Other frameworks on Linux's support is welcome!
 
 ### 1.1 Windows / WSL
 
-#### install
+#### Install
 
-Please install `im-select.exe`
+Please install `im-select.exe` and put it into your `PATH`.
 
 Download URL: [im-select](https://github.com/daipeihust/im-select)
+(For `x64` platform, please download the `64-bit` version.)
 
-#### check
+#### Check
 
-NeoVim on Windows use Command Prompt as default shell, run following command in your Command Prompt
+You can check if the `im-select` executable can be properly accessed from Neovim/Vim by running the following command from your Command Prompt:
 
 ```bash
 # find the command
@@ -45,7 +46,7 @@ $ im-select.exe
 $ im-select.exe 1033
 ```
 
-Then test in NeoVim
+Or run shell command directly from NeoVim
 
 ```bash
 :!where im-select.exe
@@ -55,13 +56,13 @@ Then test in NeoVim
 
 ### 1.2 macOS
 
-#### install
+#### Install
 
 Please install `im-select`
 
 Download URL: [im-select](https://github.com/daipeihust/im-select)
 
-#### check
+#### Check
 
 Check installation in bash/zsh
 
@@ -84,11 +85,11 @@ Check in NeoVim
 
 ### 1.3 Linux
 
-#### install
+#### Install
 
 Please install and config one of Input Methods: Fcitx / Fcitx5 / IBus
 
-#### check
+#### Check
 
 Check installation in bash/zsh
 
@@ -142,7 +143,7 @@ Check in NeoVim
 
 ## 2. Install and setup this plugin
 
-A good enough minimal config in Lazy.nvim
+A good-enough minimal config in Lazy.nvim
 
 ```lua
 {
@@ -196,7 +197,14 @@ Options with its default values
 }
 ```
 
-### BREAK CHANGE
+## 3. Current Issue
+Currently, there're some issues when using the plugin inside Neovim on Windows and cannot be always reproduced:
+https://github.com/keaising/im-select.nvim/issues/17
+
+Please turn on/off the `async_switch_im` param and see if it helps.
+
+
+## BREAK CHANGE
 
 So sorry for importing a break change
 
