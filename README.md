@@ -179,19 +179,16 @@ Options with its default values
             default_command = 'im-select.exe',
 
             -- Restore the default input method state when the following events are triggered
-            set_default_events = { "VimEnter", "FocusGained", ModeChanged = {"i:*", "c:*", "R:*"} },
+            set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
 
-            -- Save the current input method state when the following ModeChanged patterns are matched
-            save_state_patterns = {"i:n", "R:n"},
+            -- Save the current input method state when the following events are triggered
+            save_state_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
 
             -- Restore the previous used input method state when the following events
             -- are triggered, if you don't want to restore previous used im in Insert mode,
             -- e.g. deprecated `disable_auto_restore = 1`, just let it empty
             -- as `set_previous_events = {}`
-            set_previous_events = { ModeChanged = {"*:i", "*:R"} },
-
-            -- Don't change the input method state when the following ModeChanged patterns are matched
-            exclude_patterns = {"i:c", "c:i"},
+            set_previous_events = { "InsertEnter" },
 
             -- Show notification about how to install executable binary when binary missed
             keep_quiet_on_no_binary = false,

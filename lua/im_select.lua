@@ -40,14 +40,12 @@ local C = {
     -- default input method in normal mode.
     default_method_selected = "1033",
 
-    -- Restore the default input method state when the following events are triggered
-    set_default_events = { "VimEnter", "FocusGained", ModeChanged = {"i:*", "c:*", "R:*"} },
     -- Save the current using input method state when the following events are triggered
-    save_state_patterns = {["i:n"] = true, ["R:n"] = true},
+    save_state_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
+    -- Restore the default input method state when the following events are triggered
+    set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
     -- Restore the previous used input method state when the following events are triggered
-    set_previous_events = { ModeChanged = {"*:i", "*:R"} },
-    -- Don't change the input method state when the following events are triggered
-    exclude_patterns = {["i:c"] = true, ["c:i"] = true},
+    set_previous_events = { "InsertEnter" },
 
     keep_quiet_on_no_binary = false,
 
@@ -97,24 +95,15 @@ local function set_opts(opts)
 
     if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
         C.set_default_events = opts.set_default_events
+        C.save_state_events = C.set_default_events
     end
 
-    if opts.save_state_patterns ~= nil and type(opts.save_state_patterns) == "table" then
-        C.save_state_patterns = {}
-        for _, pattern in pairs(opts.save_state_patterns) do
-            C.save_state_patterns[pattern] = true
-        end
+    if opts.save_state_events ~= nil and type(opts.save_state_events) == "table" then
+        C.save_state_events = opts.save_state_events
     end
 
     if opts.set_previous_events ~= nil and type(opts.set_previous_events) == "table" then
         C.set_previous_events = opts.set_previous_events
-    end
-
-    if opts.exclude_patterns ~= nil and type(opts.exclude_patterns) == "table" then
-        C.exclude_patterns = {}
-        for _, pattern in pairs(opts.exclude_patterns) do
-            C.exclude_patterns[pattern] = true
-        end
     end
 
     -- deprecated
@@ -170,26 +159,19 @@ local function change_im_select(cmd, method)
     end
 end
 
-local function restore_default_im(args)
-    if C.exclude_patterns[args.match] then
-        return
-    end
-
+local function save_im_state()
     local current = get_current_select(C.default_command)
-    if C.save_state_patterns[args.match] then
-        vim.api.nvim_set_var("im_select_saved_state", current)
-    end
+    vim.api.nvim_set_var("im_select_saved_state", current)
+end
 
+local function restore_default_im()
+    local current = get_current_select(C.default_command)
     if current ~= C.default_method_selected then
         change_im_select(C.default_command, C.default_method_selected)
     end
 end
 
-local function restore_previous_im(args)
-    if C.exclude_patterns[args.match] then
-        return
-    end
-
+local function restore_previous_im()
     local current = get_current_select(C.default_command)
     local saved = vim.g["im_select_saved_state"]
 
@@ -217,7 +199,7 @@ M.setup = function(opts)
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
     if C.set_previous_events.ModeChanged ~= nil then
-        vim.api.nvim_create_autocmd({"ModeChanged"}, {
+        vim.api.nvim_create_autocmd("ModeChanged", {
             pattern = C.set_previous_events.ModeChanged,
             callback = restore_previous_im,
             group = group_id,
@@ -231,8 +213,23 @@ M.setup = function(opts)
         })
     end
 
+    if C.save_state_events.ModeChanged ~= nil then
+        vim.api.nvim_create_autocmd("ModeChanged", {
+            pattern = C.save_state_events.ModeChanged,
+            callback = save_im_state,
+            group = group_id,
+        })
+        C.save_state_events.ModeChanged = nil
+    end
+    if #C.save_state_events > 0 then
+        vim.api.nvim_create_autocmd(C.save_state_events, {
+            callback = save_im_state,
+            group = group_id,
+        })
+    end
+
     if C.set_default_events.ModeChanged ~= nil then
-        vim.api.nvim_create_autocmd({"ModeChanged"}, {
+        vim.api.nvim_create_autocmd("ModeChanged", {
             pattern = C.set_default_events.ModeChanged,
             callback = restore_default_im,
             group = group_id,
