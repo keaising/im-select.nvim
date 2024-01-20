@@ -1,5 +1,7 @@
 local M = {}
 
+M.closed = false
+
 local function all_trim(s)
     return s:match("^%s*(.-)%s*$")
 end
@@ -127,9 +129,9 @@ local function get_current_select(cmd)
 end
 
 local function change_im_select(cmd, method)
-    local command = {}
+    local args = {}
     if cmd:find("fcitx5-remote", 1, true) then
-        command = { cmd, "-s", method }
+        args = { "-s", method }
     elseif cmd:find("fcitx-remote", 1, true) then
         -- limited support for fcitx, can only switch for inactive and active
         if method == "1" then
@@ -137,18 +139,26 @@ local function change_im_select(cmd, method)
         else
             method = "-o"
         end
-        command = { cmd, method }
+        args = { method }
     elseif cmd:find("ibus", 1, true) then
-        command = { cmd, "engine", method }
+        args = { "engine", method }
     else
-        command = { cmd, method }
+        args = { method }
     end
 
-    if C.async_switch_im then
-        vim.fn.jobstart(table.concat(command, " "), { detach = true })
-    else
-        local jobid = vim.fn.jobstart(table.concat(command, " "), { detach = false })
-        vim.fn.jobwait({ jobid }, 200)
+    local handle
+    handle, _ = vim.loop.spawn(cmd, { args = args, detach = true },
+        vim.schedule_wrap(
+            function(code, singnal)
+                if not handle:is_closing() then handle:close() end
+                M.closed = true
+            end
+        )
+    )
+    if not handle then error("Failed to spawn process for " .. cmd) end
+
+    if not C.async_switch_im then
+        vim.wait(5000, function() return M.closed end, 200)
     end
 end
 
