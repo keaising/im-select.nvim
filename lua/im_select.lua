@@ -147,18 +147,24 @@ local function change_im_select(cmd, method)
     end
 
     local handle
-    handle, _ = vim.loop.spawn(cmd, { args = args, detach = true },
-        vim.schedule_wrap(
-            function(code, singnal)
-                if not handle:is_closing() then handle:close() end
-                M.closed = true
+    handle, _ = vim.loop.spawn(
+        cmd,
+        { args = args, detach = true },
+        vim.schedule_wrap(function(_, _)
+            if handle and not handle:is_closing() then
+                handle:close()
             end
-        )
+            M.closed = true
+        end)
     )
-    if not handle then error("Failed to spawn process for " .. cmd) end
+    if not handle then
+        vim.api.nvim_err_writeln([[[im-select]: Failed to spawn process for ]] .. cmd)
+    end
 
     if not C.async_switch_im then
-        vim.wait(5000, function() return M.closed end, 200)
+        vim.wait(5000, function()
+            return M.closed
+        end, 200)
     end
 end
 
