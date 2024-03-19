@@ -47,6 +47,10 @@ local C = {
     -- Restore the previous used input method state when the following events are triggered
     set_previous_events = { "InsertEnter" },
 
+    -- This option will overwrite `set_previous_events` setting
+    -- To use this option, you need install `Treesitter` first, See README.md for more details
+    smart_switch = false,
+
     keep_quiet_on_no_binary = false,
 
     async_switch_im = true,
@@ -99,6 +103,10 @@ local function set_opts(opts)
 
     if opts.set_previous_events ~= nil and type(opts.set_previous_events) == "table" then
         C.set_previous_events = opts.set_previous_events
+    end
+
+    if opts.smart_switch ~= nil then
+        C.smart_switch = opts.smart_switch
     end
 
     -- deprecated
@@ -186,6 +194,60 @@ local function restore_previous_im()
     end
 end
 
+-- only use in smart_switch mode
+local last_node_type = nil
+
+-- get node right before user's cursor
+local function get_node_before_cursor()
+    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    -- because nvim_win_get_cursor is (1, 0)-indexed
+    -- but vim.treesitter.get_node is (0, 0)-indexed
+    -- so row must decrease 1
+    -- and in insert mode, cursor's position is in cursor right
+    -- but we need detect the char just before the cursor
+    -- so col need decrease 1
+    local row, col = cursor_pos[1] - 1, cursor_pos[2] - 1
+    if col < 0 then
+        return nil
+    end
+    local node = vim.treesitter.get_node({ pos = { row, col } })
+    return node
+end
+
+local function would_previous_im_better(node_type)
+    local need_previous_im_type = { "comment", "comment_content", "string_content", "string" }
+    for _, v in ipairs(need_previous_im_type) do
+        if node_type == v then
+            return true
+        end
+    end
+    return false
+end
+
+-- when into insert mode
+local function determine_which_im_better_and_switch(ignore_last_node_type)
+    local current_node = get_node_before_cursor()
+    if current_node == nil then
+        return
+    end
+    local current_node_type = current_node:type()
+
+    -- when typing comment or string, switch IM to previous IM
+    if would_previous_im_better(current_node_type) then
+        if ignore_last_node_type or not would_previous_im_better(last_node_type) then
+            restore_previous_im()
+        end
+    end
+
+    -- when type comment or string finish, switch IM to default IM
+    if not would_previous_im_better(current_node_type) then
+        if ignore_last_node_type or would_previous_im_better(last_node_type) then
+            restore_default_im()
+        end
+    end
+    last_node_type = current_node:type()
+end
+
 M.setup = function(opts)
     if not is_supported() then
         return
@@ -201,10 +263,18 @@ M.setup = function(opts)
         return
     end
 
+    if C.smart_switch then
+        if vim.fn.exists(':TSInstallInfo') ~= 0 then
+            vim.api.nvim_err_writeln(
+                [[[im-select]: `Treesitter` missed or not start, please install `Treesitter` or load `Treesitter` first. See README.md for more details]])
+            return
+        end
+    end
+
     -- set autocmd
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
-    if #C.set_previous_events > 0 then
+    if C.smart_switch ~= true and #C.set_previous_events > 0 then
         vim.api.nvim_create_autocmd(C.set_previous_events, {
             callback = restore_previous_im,
             group = group_id,
@@ -215,6 +285,19 @@ M.setup = function(opts)
         vim.api.nvim_create_autocmd(C.set_default_events, {
             callback = restore_default_im,
             group = group_id,
+        })
+    end
+
+    if C.smart_switch == true then
+        vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+            callback = function()
+                determine_which_im_better_and_switch(true)
+            end
+        })
+        vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+            callback = function()
+                determine_which_im_better_and_switch(false)
+            end
         })
     end
 end
