@@ -187,6 +187,9 @@ Options with its default values
             -- as `set_previous_events = {}`
             set_previous_events = { "InsertEnter" },
 
+            -- This option will overwrite `set_previous_events` option. See ###Smart Switch for more details
+            smart_switch = false,
+
             -- Show notification about how to install executable binary when binary missed
             keep_quiet_on_no_binary = false,
 
@@ -196,6 +199,31 @@ Options with its default values
     end,
 }
 ```
+
+### Smart Switch
+
+This feature is designed to analyze the logical structure of your code using Treesitter. It automatically activates the default IM or the previous IM based on the context. When typing comments or strings, it uses the previous IM. In other cases or when in normal mode, it utilizes the default IM.
+
+To enable the feature that automatically selects the default IM or the previous IM based on context, you need to have **Treesitter installed** and configured for your desired programming language. 
+
+Follow these steps to configure it:
+
+```lua
+{
+    "keaising/im-select.nvim",
+    dependencies = {"nvim-treesitter/nvim-treesitter"}
+    config = function()
+        require('im_select').setup({
+            -- Enabling this function will render the `set_previous_events` option ineffective
+            smart_switch = false,
+        })
+    end,
+}
+```
+
+After setting up the configuration, run the command `:TSInstall xxx`, replacing "xxx" with the name of your language's Treesitter parser. For example, if you're using JavaScript, run `:TSInstall javascript`.
+
+**Important:** Enabling this function will render the `set_previous_events` option ineffective.
 
 ## 3. Current Issue
 
