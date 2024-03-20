@@ -194,18 +194,17 @@ local function restore_previous_im()
     end
 end
 
--- only use in smart_switch mode
+-- Only used in smart switch mode.
 local last_node_type = nil
+local need_previous_im_type = { "comment_content", "string_content" }
 
--- get node right before user's cursor
+-- Get node right before user's cursor
+-- In insert mode, cursor's position at cursor right
 local function get_node_before_cursor()
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     -- because nvim_win_get_cursor is (1, 0)-indexed
     -- but vim.treesitter.get_node is (0, 0)-indexed
     -- so row must decrease 1
-    -- and in insert mode, cursor's position is in cursor right
-    -- but we need detect the char just before the cursor
-    -- so col need decrease 1
     local row, col = cursor_pos[1] - 1, cursor_pos[2] - 1
     if col < 0 then
         return nil
@@ -214,8 +213,19 @@ local function get_node_before_cursor()
     return node
 end
 
+-- Get node in user's cursor
+-- In insert mode, cursor's position at cursor right
+local function get_node_in_cursor()
+    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    -- because nvim_win_get_cursor is (1, 0)-indexed
+    -- but vim.treesitter.get_node is (0, 0)-indexed
+    -- so row must decrease 1
+    local row, col = cursor_pos[1] - 1, cursor_pos[2]
+    local node = vim.treesitter.get_node({ pos = { row, col } })
+    return node
+end
+
 local function would_previous_im_better(node_type)
-    local need_previous_im_type = { "comment", "comment_content", "string_content", "string" }
     for _, v in ipairs(need_previous_im_type) do
         if node_type == v then
             return true
@@ -224,7 +234,23 @@ local function would_previous_im_better(node_type)
     return false
 end
 
--- when into insert mode
+local function restore_default_im_for_smart_switch(opts)
+    local current = get_current_select(C.default_command)
+    if opts.event == "InsertLeave" then
+        local node_type = get_node_in_cursor():type()
+        if would_previous_im_better(node_type) then
+            vim.api.nvim_set_var("im_select_saved_state", current)
+        end
+    end
+
+    if current ~= C.default_method_selected then
+        change_im_select(C.default_command, C.default_method_selected)
+    end
+end
+
+-- Only used in smart switch mode.
+-- In normal mode, switching to insert mode will set 'ignore_last_node_type' to true.
+-- In insert mode, when the user is typing a comment or string, 'ignore_last_node_type' will be set to false.
 local function determine_which_im_better_and_switch(ignore_last_node_type)
     local current_node = get_node_before_cursor()
     if current_node == nil then
@@ -232,14 +258,14 @@ local function determine_which_im_better_and_switch(ignore_last_node_type)
     end
     local current_node_type = current_node:type()
 
-    -- when typing comment or string, switch IM to previous IM
+    -- When typing comment or string, switch im to previous im
     if would_previous_im_better(current_node_type) then
         if ignore_last_node_type or not would_previous_im_better(last_node_type) then
             restore_previous_im()
         end
     end
 
-    -- when type comment or string finish, switch IM to default IM
+    -- When type comment or string finish, switch im to default im
     if not would_previous_im_better(current_node_type) then
         if ignore_last_node_type or would_previous_im_better(last_node_type) then
             restore_default_im()
@@ -264,7 +290,7 @@ M.setup = function(opts)
     end
 
     if C.smart_switch then
-        if vim.fn.exists(':TSInstallInfo') ~= 0 then
+        if vim.fn.exists(':TSInstallInfo') ~= 2 then
             vim.api.nvim_err_writeln(
                 [[[im-select]: `Treesitter` missed or not start, please install `Treesitter` or load `Treesitter` first. See README.md for more details]])
             return
@@ -274,27 +300,33 @@ M.setup = function(opts)
     -- set autocmd
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
-    if C.smart_switch ~= true and #C.set_previous_events > 0 then
-        vim.api.nvim_create_autocmd(C.set_previous_events, {
-            callback = restore_previous_im,
-            group = group_id,
-        })
-    end
+    if C.smart_switch == false then
+        if #C.set_previous_events > 0 then
+            vim.api.nvim_create_autocmd(C.set_previous_events, {
+                callback = restore_previous_im,
+                group = group_id,
+            })
+        end
 
-    if #C.set_default_events > 0 then
-        vim.api.nvim_create_autocmd(C.set_default_events, {
-            callback = restore_default_im,
-            group = group_id,
-        })
+        if #C.set_default_events > 0 then
+            vim.api.nvim_create_autocmd(C.set_default_events, {
+                callback = restore_default_im,
+                group = group_id,
+            })
+        end
     end
 
     if C.smart_switch == true then
+        vim.api.nvim_create_autocmd(C.set_default_events, {
+            callback = restore_default_im_for_smart_switch,
+            group = group_id,
+        })
         vim.api.nvim_create_autocmd({ "InsertEnter" }, {
             callback = function()
                 determine_which_im_better_and_switch(true)
             end
         })
-        vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+        vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
             callback = function()
                 determine_which_im_better_and_switch(false)
             end
