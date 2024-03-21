@@ -177,6 +177,7 @@ local function change_im_select(cmd, method)
 end
 
 local function restore_default_im()
+    vim.notify("Switch to EN")
     local current = get_current_select(C.default_command)
     vim.api.nvim_set_var("im_select_saved_state", current)
 
@@ -185,7 +186,17 @@ local function restore_default_im()
     end
 end
 
+local function restore_default_im_without_save()
+    vim.notify("Switch to EN")
+    local current = get_current_select(C.default_command)
+
+    if current ~= C.default_method_selected then
+        change_im_select(C.default_command, C.default_method_selected)
+    end
+end
+
 local function restore_previous_im()
+    vim.notify("Switch to ZH")
     local current = get_current_select(C.default_command)
     local saved = vim.g["im_select_saved_state"]
 
@@ -196,7 +207,7 @@ end
 
 -- Only used in smart switch mode.
 local last_node_type = nil
-local need_previous_im_type = { "comment_content", "string_content" }
+local need_previous_im_type = { "comment", "comment_content", "string", "string_content" }
 
 -- Get node right before user's cursor
 -- In insert mode, cursor's position at cursor right
@@ -210,7 +221,7 @@ local function get_node_before_cursor()
         return nil
     end
     local node = vim.treesitter.get_node({ pos = { row, col } })
-    return node
+    return node, row, col
 end
 
 -- Get node in user's cursor
@@ -234,7 +245,7 @@ local function would_previous_im_better(node_type)
     return false
 end
 
-local function restore_default_im_for_smart_switch(opts)
+local function restore_default_im_and_save_in_InsertLeave(opts)
     local current = get_current_select(C.default_command)
     if opts.event == "InsertLeave" then
         local node_type = get_node_in_cursor():type()
@@ -248,30 +259,52 @@ local function restore_default_im_for_smart_switch(opts)
     end
 end
 
--- Only used in smart switch mode.
--- In normal mode, switching to insert mode will set 'ignore_last_node_type' to true.
--- In insert mode, when the user is typing a comment or string, 'ignore_last_node_type' will be set to false.
-local function determine_which_im_better_and_switch(ignore_last_node_type)
+local function normal_to_insert_switch_im()
+    last_node_type = nil
     local current_node = get_node_before_cursor()
     if current_node == nil then
         return
     end
     local current_node_type = current_node:type()
-
-    -- When typing comment or string, switch im to previous im
     if would_previous_im_better(current_node_type) then
-        if ignore_last_node_type or not would_previous_im_better(last_node_type) then
-            restore_previous_im()
-        end
+        restore_previous_im()
+    else
+        restore_default_im_without_save()
     end
+end
 
-    -- When type comment or string finish, switch im to default im
-    if not would_previous_im_better(current_node_type) then
-        if ignore_last_node_type or would_previous_im_better(last_node_type) then
-            restore_default_im()
+local function insert_mode_smart_switch()
+    -- Must use async function, because when CursorMovedI event was emitted,
+    -- Treesitter might not have finished parsing the current buffer yet.
+    -- So current_node type might be wrong
+    -- And use async function might have little performance improve? Not sure....
+    vim.defer_fn(function()
+        local current_node, _, col = get_node_before_cursor()
+        if current_node == nil then
+            return
         end
-    end
-    last_node_type = current_node:type()
+
+        local current_node_type = current_node:type()
+
+        -- When typing into a comment or string, switch input method to the previous one
+        if current_node_type == "comment" or current_node_type == "string" then
+            if current_node:child_count() == 2 then
+                local _, start_col, _, _ = current_node:child(1):range()
+                if start_col - 1 == col then
+                    restore_previous_im()
+                end
+            end
+        end
+
+        -- When leaving a string, switch input method to the default one
+        if current_node_type == "string" then
+            local string_end = current_node:range()[4]
+            -- The interval is left-closed and right-open, so the right column number should be reduced by one
+            if string_end - 1 == col then
+                restore_default_im()
+            end
+        end
+    end, 0)
 end
 
 M.setup = function(opts)
@@ -318,18 +351,14 @@ M.setup = function(opts)
 
     if C.smart_switch == true then
         vim.api.nvim_create_autocmd(C.set_default_events, {
-            callback = restore_default_im_for_smart_switch,
+            callback = restore_default_im_and_save_in_InsertLeave,
             group = group_id,
         })
         vim.api.nvim_create_autocmd({ "InsertEnter" }, {
-            callback = function()
-                determine_which_im_better_and_switch(true)
-            end
+            callback = normal_to_insert_switch_im
         })
-        vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
-            callback = function()
-                determine_which_im_better_and_switch(false)
-            end
+        vim.api.nvim_create_autocmd({ "CursorMovedI" }, {
+            callback = insert_mode_smart_switch
         })
     end
 end

@@ -215,7 +215,7 @@ Follow these steps to configure it:
     config = function()
         require('im_select').setup({
             -- Enabling this function will render the `set_previous_events` option ineffective
-            smart_switch = false,
+            smart_switch = true,
         })
     end,
 }
