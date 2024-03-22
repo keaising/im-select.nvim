@@ -214,7 +214,7 @@ Follow these steps to configure it:
     dependencies = {"nvim-treesitter/nvim-treesitter"}
     config = function()
         require('im_select').setup({
-            -- Enabling this function will render the `set_previous_events` option ineffective
+            -- Enabling this feature will render the `set_previous_events` option ineffective
             smart_switch = true,
         })
     end,
@@ -223,7 +223,7 @@ Follow these steps to configure it:
 
 After setting up the configuration, run the command `:TSInstall xxx`, replacing "xxx" with the name of your language's Treesitter parser. For example, if you're using JavaScript, run `:TSInstall javascript`.
 
-**Important:** Enabling this function will render the `set_previous_events` option ineffective.
+**Important:** Enabling this feature will render the `set_previous_events` option ineffective.
 
 ## 3. Current Issue
 
