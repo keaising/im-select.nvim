@@ -202,6 +202,8 @@ Options with its default values
 
 ### Smart Switch
 
+**TLDR:** Turn on smart switch will record the last IM you used for comments and strings, turn off smart switch will use the last IM you used in insert mode
+
 This feature is designed to analyze the logical structure of your code using Treesitter. It automatically activates the default IM or the previous IM based on the context. When typing comments or strings, it uses the previous IM. In other cases or when in normal mode, it utilizes the default IM.
 
 To enable the feature that automatically selects the default IM or the previous IM based on context, you need to have **Treesitter installed** and configured for your desired programming language. 
