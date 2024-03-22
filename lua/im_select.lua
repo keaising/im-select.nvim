@@ -177,7 +177,6 @@ local function change_im_select(cmd, method)
 end
 
 local function restore_default_im()
-    vim.notify("Switch to EN")
     local current = get_current_select(C.default_command)
     vim.api.nvim_set_var("im_select_saved_state", current)
 
@@ -187,7 +186,6 @@ local function restore_default_im()
 end
 
 local function restore_default_im_without_save()
-    vim.notify("Switch to EN")
     local current = get_current_select(C.default_command)
 
     if current ~= C.default_method_selected then
@@ -196,7 +194,6 @@ local function restore_default_im_without_save()
 end
 
 local function restore_previous_im()
-    vim.notify("Switch to ZH")
     local current = get_current_select(C.default_command)
     local saved = vim.g["im_select_saved_state"]
 
