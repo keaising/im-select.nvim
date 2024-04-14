@@ -177,6 +177,7 @@ Options with its default values
             -- For macOS, default: "im-select"
             -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or "ibus"
             default_command = 'im-select.exe',
+            -- pattern = '',
 
             -- Restore the default input method state when the following events are triggered
             set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },

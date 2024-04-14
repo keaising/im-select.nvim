@@ -39,6 +39,8 @@ end
 local C = {
     -- im-select binary's name, or the binary's full path
     default_command = "im-select.exe",
+    -- pattern
+    pattern = "",
     -- default input method in normal mode.
     default_method_selected = "1033",
 
@@ -89,11 +91,15 @@ local function set_opts(opts)
         C.default_method_selected = opts.default_im_select
     end
 
+    if opts.pattern ~= nil then
+        C.pattern = opts.pattern
+    end
+
     if opts.default_command ~= nil then
         C.default_command = opts.default_command
     end
 
-    if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
+    if opts.set_default_events ~= nil and type(opts.sset_default_eventset_default_events) == "table" then
         C.set_default_events = opts.set_default_events
     end
 
@@ -116,19 +122,19 @@ local function set_opts(opts)
     end
 end
 
-local function get_current_select(cmd)
+local function get_current_select(cmd, pattern)
     local command = {}
     if cmd:find("fcitx5-remote", 1, true) ~= nil then
         command = { cmd, "-n" }
     elseif cmd:find("ibus", 1, true) ~= nil then
         command = { cmd, "engine" }
     else
-        command = { cmd }
+        command = { cmd, pattern }
     end
     return all_trim(vim.fn.system(command))
 end
 
-local function change_im_select(cmd, method)
+local function change_im_select(cmd, pattern, method)
     local args = {}
     if cmd:find("fcitx5-remote", 1, true) then
         args = { "-s", method }
@@ -139,11 +145,11 @@ local function change_im_select(cmd, method)
         else
             method = "-o"
         end
-        args = { method }
+        args = { pattern, method }
     elseif cmd:find("ibus", 1, true) then
         args = { "engine", method }
     else
-        args = { method }
+        args = { pattern, method }
     end
 
     local handle
@@ -169,20 +175,20 @@ local function change_im_select(cmd, method)
 end
 
 local function restore_default_im()
-    local current = get_current_select(C.default_command)
+    local current = get_current_select(C.default_command, C.pattern)
     vim.api.nvim_set_var("im_select_saved_state", current)
 
     if current ~= C.default_method_selected then
-        change_im_select(C.default_command, C.default_method_selected)
+        change_im_select(C.default_command, C.pattern, C.default_method_selected)
     end
 end
 
 local function restore_previous_im()
-    local current = get_current_select(C.default_command)
+    local current = get_current_select(C.default_command, C.pattern)
     local saved = vim.g["im_select_saved_state"]
 
     if current ~= saved then
-        change_im_select(C.default_command, saved)
+        change_im_select(C.default_command, C.pattern, saved)
     end
 end
 
