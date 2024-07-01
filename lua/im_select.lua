@@ -39,8 +39,6 @@ end
 local C = {
     -- im-select binary's name, or the binary's full path
     default_command = "im-select.exe",
-    -- pattern
-    pattern = "",
     -- default input method in normal mode.
     default_method_selected = "1033",
 
@@ -76,7 +74,7 @@ local function set_default_config()
         elseif vim.fn.executable("ibus") == 1 then
             -- ibus engine xkb:us::eng
             -- ibus engine rime
-            C.default_command = "ibus"
+            C.default_command = { "ibus", "engine" }
             C.default_method_selected = "xkb:us::eng"
         end
     end
@@ -91,15 +89,12 @@ local function set_opts(opts)
         C.default_method_selected = opts.default_im_select
     end
 
-    if opts.pattern ~= nil then
-        C.pattern = opts.pattern
-    end
-
-    if
-        opts.default_command ~= nil
-        and (type(opts.default_command) == "string" or type(opts.set_default_events) == "table")
-    then
-        C.default_command = opts.default_command
+    if opts.default_command ~= nil then
+        if type(opts.default_command) == "string" then
+            C.default_command = { opts.default_command }
+        else
+            C.default_command = opts.default_command
+        end
     end
 
     if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
@@ -126,49 +121,31 @@ local function set_opts(opts)
 end
 
 local function get_current_select(cmd)
-    local command = {}
-
-    if type(cmd) == "table" then
-        command = cmd
-    else
-        if cmd:find("fcitx5-remote", 1, true) ~= nil then
-            command = { cmd, "-n" }
-        elseif cmd:find("ibus", 1, true) ~= nil then
-            command = { cmd, "engine" }
-        else
-            command = { cmd }
-        end
+    local command = cmd
+    if cmd[1]:find("fcitx5-remote", 1, true) ~= nil then
+        command = { "fcitx5-remote", "-n" }
     end
-
     return all_trim(vim.fn.system(command))
 end
 
 local function change_im_select(cmd, method)
-    local args = {}
-    if type(cmd) == "table" then
-        args = { table.unpack(cmd, 2), method }
-        cmd = cmd[1]
-    else
-        if cmd:find("fcitx5-remote", 1, true) then
-            args = { "-s", method }
-        elseif cmd:find("fcitx-remote", 1, true) then
-            -- limited support for fcitx, can only switch for inactive and active
-            if method == "1" then
-                method = "-c"
-            else
-                method = "-o"
-            end
-            args = { method }
-        elseif cmd:find("ibus", 1, true) then
-            args = { "engine", method }
+    local args = { unpack(cmd, 2) }
+
+    if cmd[1]:find("fcitx5-remote", 1, true) then
+        table.insert(args, "-s")
+    elseif cmd[1]:find("fcitx-remote", 1, true) then
+        -- limited support for fcitx, can only switch for inactive and active
+        if method == "1" then
+            method = "-c"
         else
-            args = { method }
+            method = "-o"
         end
     end
+    table.insert(args, method)
 
     local handle
     handle, _ = vim.loop.spawn(
-        cmd,
+        cmd[1],
         { args = args, detach = true },
         vim.schedule_wrap(function(_, _)
             if handle and not handle:is_closing() then
@@ -214,8 +191,7 @@ M.setup = function(opts)
     set_default_config()
     set_opts(opts)
 
-    local command = type(C.default_command) == "table" and C.default_command[1] or C.default_command
-    if vim.fn.executable(command) ~= 1 then
+    if vim.fn.executable(C.default_command[1]) ~= 1 then
         if not C.keep_quiet_on_no_binary then
             vim.api.nvim_err_writeln([[[im-select]: binary tools missed, please follow installation manual in README]])
         end
