@@ -95,11 +95,14 @@ local function set_opts(opts)
         C.pattern = opts.pattern
     end
 
-    if opts.default_command ~= nil then
+    if
+        opts.default_command ~= nil
+        and (type(opts.default_command) == "string" or type(opts.set_default_events) == "table")
+    then
         C.default_command = opts.default_command
     end
 
-    if opts.set_default_events ~= nil and type(opts.sset_default_eventset_default_events) == "table" then
+    if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
         C.set_default_events = opts.set_default_events
     end
 
@@ -122,34 +125,45 @@ local function set_opts(opts)
     end
 end
 
-local function get_current_select(cmd, pattern)
+local function get_current_select(cmd)
     local command = {}
-    if cmd:find("fcitx5-remote", 1, true) ~= nil then
-        command = { cmd, "-n" }
-    elseif cmd:find("ibus", 1, true) ~= nil then
-        command = { cmd, "engine" }
+
+    if type(cmd) == "table" then
+        command = cmd
     else
-        command = { cmd, pattern }
+        if cmd:find("fcitx5-remote", 1, true) ~= nil then
+            command = { cmd, "-n" }
+        elseif cmd:find("ibus", 1, true) ~= nil then
+            command = { cmd, "engine" }
+        else
+            command = { cmd }
+        end
     end
+
     return all_trim(vim.fn.system(command))
 end
 
-local function change_im_select(cmd, pattern, method)
+local function change_im_select(cmd, method)
     local args = {}
-    if cmd:find("fcitx5-remote", 1, true) then
-        args = { "-s", method }
-    elseif cmd:find("fcitx-remote", 1, true) then
-        -- limited support for fcitx, can only switch for inactive and active
-        if method == "1" then
-            method = "-c"
-        else
-            method = "-o"
-        end
-        args = { pattern, method }
-    elseif cmd:find("ibus", 1, true) then
-        args = { "engine", method }
+    if type(cmd) == "table" then
+        args = { table.unpack(cmd, 2), method }
+        cmd = cmd[1]
     else
-        args = { pattern, method }
+        if cmd:find("fcitx5-remote", 1, true) then
+            args = { "-s", method }
+        elseif cmd:find("fcitx-remote", 1, true) then
+            -- limited support for fcitx, can only switch for inactive and active
+            if method == "1" then
+                method = "-c"
+            else
+                method = "-o"
+            end
+            args = { method }
+        elseif cmd:find("ibus", 1, true) then
+            args = { "engine", method }
+        else
+            args = { method }
+        end
     end
 
     local handle
@@ -175,20 +189,20 @@ local function change_im_select(cmd, pattern, method)
 end
 
 local function restore_default_im()
-    local current = get_current_select(C.default_command, C.pattern)
+    local current = get_current_select(C.default_command)
     vim.api.nvim_set_var("im_select_saved_state", current)
 
     if current ~= C.default_method_selected then
-        change_im_select(C.default_command, C.pattern, C.default_method_selected)
+        change_im_select(C.default_command, C.default_method_selected)
     end
 end
 
 local function restore_previous_im()
-    local current = get_current_select(C.default_command, C.pattern)
+    local current = get_current_select(C.default_command)
     local saved = vim.g["im_select_saved_state"]
 
     if current ~= saved then
-        change_im_select(C.default_command, C.pattern, saved)
+        change_im_select(C.default_command, saved)
     end
 end
 
@@ -200,7 +214,8 @@ M.setup = function(opts)
     set_default_config()
     set_opts(opts)
 
-    if vim.fn.executable(C.default_command) ~= 1 then
+    local command = type(C.default_command) == "table" and C.default_command[1] or C.default_command
+    if vim.fn.executable(command) ~= 1 then
         if not C.keep_quiet_on_no_binary then
             vim.api.nvim_err_writeln([[[im-select]: binary tools missed, please follow installation manual in README]])
         end
