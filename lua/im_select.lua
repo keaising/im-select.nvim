@@ -38,7 +38,7 @@ end
 -- local config
 local C = {
     -- im-select binary's name, or the binary's full path
-    default_command = "im-select.exe",
+    default_command = { "im-select.exe" },
     -- default input method in normal mode.
     default_method_selected = "1033",
 
@@ -55,21 +55,21 @@ local C = {
 local function set_default_config()
     local current_os = determine_os()
     if current_os == "macOS" then
-        C.default_command = "im-select"
+        C.default_command = { "im-select" }
         C.default_method_selected = "com.apple.keylayout.ABC"
     elseif current_os == "Windows" or current_os == "WSL" then
         -- WSL share same config with Windows
-        C.default_command = "im-select.exe"
+        C.default_command = { "im-select.exe" }
         C.default_method_selected = "1033"
     else
         -- 0 for close, 1 for inactive, 2 for active
-        C.default_command = "fcitx-remote"
+        C.default_command = { "fcitx-remote" }
         C.default_method_selected = "1"
         if vim.fn.executable("fcitx5-remote") == 1 then
             -- fcitx5-remote -n: rime/keyboard-us
             -- fcitx5-remote -s rime
             -- fcitx5-remote -s keyboard-us
-            C.default_command = "fcitx5-remote"
+            C.default_command = { "fcitx5-remote" }
             C.default_method_selected = "keyboard-us"
         elseif vim.fn.executable("ibus") == 1 then
             -- ibus engine xkb:us::eng
@@ -92,12 +92,10 @@ local function set_opts(opts)
     if opts.default_command ~= nil then
         if type(opts.default_command) == "string" then
             C.default_command = { opts.default_command }
-        else
+        elseif type(opts.default_command) == "table" then
             C.default_command = opts.default_command
-        end
-    else
-        if type(C.default_command) == "string" then
-            C.default_command = { C.default_command }
+        else
+            print("[im-select]: wrong config for default_command")
         end
     end
 
