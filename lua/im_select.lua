@@ -95,6 +95,10 @@ local function set_opts(opts)
         else
             C.default_command = opts.default_command
         end
+    else
+        if type(C.default_command) == "string" then
+            C.default_command = { C.default_command }
+        end
     end
 
     if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
