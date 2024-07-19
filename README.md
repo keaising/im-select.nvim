@@ -129,7 +129,7 @@ $ which ibus
 $ ibus engine
 
 # Try to switch to English keyboard
-$ ibus xkb:us::eng
+$ ibus engine xkb:us::eng
 ```
 
 Check in NeoVim
