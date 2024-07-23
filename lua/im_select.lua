@@ -42,6 +42,8 @@ local C = {
     -- default input method in normal mode.
     default_method_selected = "1033",
 
+    -- Save the current using input method state when the following events are triggered
+    save_state_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
     -- Restore the default input method state when the following events are triggered
     set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
     -- Restore the previous used input method state when the following events are triggered
@@ -101,6 +103,11 @@ local function set_opts(opts)
 
     if opts.set_default_events ~= nil and type(opts.set_default_events) == "table" then
         C.set_default_events = opts.set_default_events
+        C.save_state_events = C.set_default_events
+    end
+
+    if opts.save_state_events ~= nil and type(opts.save_state_events) == "table" then
+        C.save_state_events = opts.save_state_events
     end
 
     if opts.set_previous_events ~= nil and type(opts.set_previous_events) == "table" then
@@ -167,10 +174,13 @@ local function change_im_select(cmd, method)
     end
 end
 
-local function restore_default_im()
+local function save_im_state()
     local current = get_current_select(C.default_command)
     vim.api.nvim_set_var("im_select_saved_state", current)
+end
 
+local function restore_default_im()
+    local current = get_current_select(C.default_command)
     if current ~= C.default_method_selected then
         change_im_select(C.default_command, C.default_method_selected)
     end
@@ -203,6 +213,14 @@ M.setup = function(opts)
     -- set autocmd
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
+    if C.set_previous_events.ModeChanged ~= nil then
+        vim.api.nvim_create_autocmd("ModeChanged", {
+            pattern = C.set_previous_events.ModeChanged,
+            callback = restore_previous_im,
+            group = group_id,
+        })
+        C.set_previous_events.ModeChanged = nil
+    end
     if #C.set_previous_events > 0 then
         vim.api.nvim_create_autocmd(C.set_previous_events, {
             callback = restore_previous_im,
@@ -210,6 +228,29 @@ M.setup = function(opts)
         })
     end
 
+    if C.save_state_events.ModeChanged ~= nil then
+        vim.api.nvim_create_autocmd("ModeChanged", {
+            pattern = C.save_state_events.ModeChanged,
+            callback = save_im_state,
+            group = group_id,
+        })
+        C.save_state_events.ModeChanged = nil
+    end
+    if #C.save_state_events > 0 then
+        vim.api.nvim_create_autocmd(C.save_state_events, {
+            callback = save_im_state,
+            group = group_id,
+        })
+    end
+
+    if C.set_default_events.ModeChanged ~= nil then
+        vim.api.nvim_create_autocmd("ModeChanged", {
+            pattern = C.set_default_events.ModeChanged,
+            callback = restore_default_im,
+            group = group_id,
+        })
+        C.set_default_events.ModeChanged = nil
+    end
     if #C.set_default_events > 0 then
         vim.api.nvim_create_autocmd(C.set_default_events, {
             callback = restore_default_im,

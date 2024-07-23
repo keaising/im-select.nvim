@@ -182,6 +182,9 @@ Options with its default values
             -- Restore the default input method state when the following events are triggered
             set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
 
+            -- Save the current input method state when the following events are triggered
+            save_state_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
+
             -- Restore the previous used input method state when the following events
             -- are triggered, if you don't want to restore previous used im in Insert mode,
             -- e.g. deprecated `disable_auto_restore = 1`, just let it empty
@@ -197,6 +200,8 @@ Options with its default values
     end,
 }
 ```
+
+The docs for ModeChanged patterns can be found at [ModeChanged](https://neovim.io/doc/user/autocmd.html#ModeChanged) and [mode()](https://neovim.io/doc/user/builtin.html#mode()).
 
 ## 3. Current Issue
 
