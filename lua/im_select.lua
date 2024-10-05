@@ -43,7 +43,7 @@ local C = {
     default_method_selected = "1033",
 
     -- Restore the default input method state when the following events are triggered
-    set_default_events = { "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" },
+    set_default_events = { "VimEnter", "FocusGained", "InsertLeave"},
     -- Restore the previous used input method state when the following events are triggered
     set_previous_events = { "InsertEnter" },
 
