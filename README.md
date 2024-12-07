@@ -58,9 +58,9 @@ Or run shell command directly from NeoVim
 
 #### Install
 
-Please install `im-select`
+Please install `macism`
 
-Download URL: [im-select](https://github.com/daipeihust/im-select)
+Download URL: [macism](https://github.com/laishulu/macism)
 
 #### Check
 
@@ -68,13 +68,14 @@ Check installation in bash/zsh
 
 ```bash
 # find binary
-$ which im-select
+$ which macism
 
 # Get current im name
-$ im-select
+$ macism
+com.apple.keylayout.ABC
 
 # Try to switch to English keyboard
-$ im-select com.apple.keylayout.ABC
+$ macism com.apple.keylayout.ABC
 ```
 
 Check in NeoVim
@@ -175,7 +176,7 @@ Options with its default values
             -- '/usr/local/bin/im-select' for binary without extra arguments,
             -- or { "AIMSwitcher.exe", "--imm" } for binary need extra arguments to work.
             -- For Windows/WSL, default: "im-select.exe"
-            -- For macOS, default: "im-select"
+            -- For macOS, default: "macism"
             -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or "ibus"
             default_command = "im-select.exe",
 
