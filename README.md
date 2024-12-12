@@ -81,7 +81,7 @@ $ macism com.apple.keylayout.ABC
 Check in NeoVim
 
 ```bash
-:!which im-select
+:!which macism
 ```
 
 ### 1.3 Linux
@@ -199,13 +199,3 @@ Options with its default values
 }
 ```
 
-## 3. Current Issue
-
-Currently, there're some issues when using the plugin inside Neovim on Windows and cannot be always reproduced:
-
-- https://github.com/keaising/im-select.nvim/issues/17
-- https://github.com/keaising/im-select.nvim/issues/16
-
-Please try to turn on/off the `async_switch_im` and see if it helps.
-
-Because I don't use Neovim on Windows, so if anyone would like to help debug and fix this issue, pull request is very welcome.
