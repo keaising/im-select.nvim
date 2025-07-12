@@ -58,7 +58,7 @@ Or run shell command directly from NeoVim
 
 #### Install
 
-Please install `macism`
+Please install `macism`, this is the only one CLI tool can switch CJK and English input methods in macOS correctly.
 
 Download URL: [macism](https://github.com/laishulu/macism)
 
