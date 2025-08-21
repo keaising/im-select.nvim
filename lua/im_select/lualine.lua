@@ -14,29 +14,13 @@ local config = {
 }
 
 local function get_saved_display_name()
-    -- Use the same priority logic as im_select.lua: buffer pinned > buffer > window
-    if vim.b.im_select_pin and vim.b.im_select_display_name and vim.b.im_select_display_name ~= "" then
-        return vim.b.im_select_display_name
-    elseif vim.b.im_select_display_name and vim.b.im_select_display_name ~= "" then
-        return vim.b.im_select_display_name
-    elseif vim.w.im_select_display_name and vim.w.im_select_display_name ~= "" then
-        return vim.w.im_select_display_name
-    end
-    
-    return nil
+    -- Priority: buffer > window
+    return vim.b.im_select_display_name or vim.w.im_select_display_name
 end
 
 local function get_saved_im_for_color()
-    -- Get the IM identifier for color determination
-    if vim.b.im_select_pin and vim.b.im_select_context and vim.b.im_select_context ~= "" then
-        return vim.b.im_select_context
-    elseif vim.b.im_select_context and vim.b.im_select_context ~= "" then
-        return vim.b.im_select_context
-    elseif vim.w.im_select_context and vim.w.im_select_context ~= "" then
-        return vim.w.im_select_context
-    end
-    
-    return nil
+    -- Priority: buffer > window
+    return vim.b.im_select_context or vim.w.im_select_context
 end
 
 local function get_color(im)

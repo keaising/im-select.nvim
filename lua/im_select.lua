@@ -244,7 +244,7 @@ local function restore_context_im()
     if vim.b.im_select_pin and vim.b.im_select_context and vim.b.im_select_context ~= "" then
         target = vim.b.im_select_context
     elseif vim.b.im_select_context and vim.b.im_select_context ~= "" then
-        target = vim.b.im_select_context
+        target = vim.b.im_select_context  
     elseif vim.w.im_select_context and vim.w.im_select_context ~= "" then
         target = vim.w.im_select_context
     end
@@ -339,7 +339,9 @@ M.setup = function(opts)
 
     vim.api.nvim_create_user_command("IMUnpinBuffer", function()
         vim.b.im_select_pin = false
-        vim.notify("[im-select] buffer unpinned (window IM will be used)")
+        vim.b.im_select_context = nil
+        vim.b.im_select_display_name = nil
+        vim.notify("[im-select] buffer unpinned and context cleared (window IM will be used)")
     end, {})
 end
 
