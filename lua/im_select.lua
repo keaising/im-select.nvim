@@ -6,6 +6,41 @@ local function all_trim(s)
     return s:match("^%s*(.-)%s*$")
 end
 
+local function get_display_name(im)
+    if not im or im == "" then
+        return "?"
+    end
+    
+    -- For macOS
+    if im == "com.apple.keylayout.ABC" then
+        return "EN"
+    elseif im:match("Vietnamese") then
+        return "VI"
+    elseif im:match("Chinese") or im:match("Pinyin") then
+        return "CN"
+    elseif im:match("Korean") then
+        return "KO"
+    elseif im:match("Japanese") or im:match("Hiragana") or im:match("Katakana") then
+        return "JP"
+    end
+    
+    -- For Windows
+    if im == "1033" then
+        return "EN"
+    end
+    
+    -- For Linux fcitx/ibus
+    if im == "keyboard-us" or im == "1" or im == "xkb:us::eng" then
+        return "EN"
+    elseif im:match("rime") or im:match("pinyin") then
+        return "CN"
+    end
+    
+    -- Fallback: show last part of identifier
+    local parts = vim.split(im, "[%.%-_]")
+    return parts[#parts]:upper():sub(1, 3)
+end
+
 local function determine_os()
     if vim.fn.has("macunix") == 1 then
         return "macOS"
@@ -190,11 +225,16 @@ end
 local function save_context_im()
     local current = get_current_select(C.default_command)
     if current and current ~= "" then
+        local display_name = get_display_name(current)
+        
         -- Always remember per-BUFFER IM (so different buffers in the same window can differ)
         vim.b.im_select_context = current
+        vim.b.im_select_display_name = display_name
+        
         -- Keep a per-WINDOW default only if none exists yet (used as fallback for new buffers)
         if vim.w.im_select_context == nil or vim.w.im_select_context == "" then
             vim.w.im_select_context = current
+            vim.w.im_select_display_name = display_name
         end
     end
 end
@@ -290,9 +330,11 @@ M.setup = function(opts)
             vim.notify("[im-select] cannot detect current IM", vim.log.levels.WARN)
             return
         end
+        local display_name = get_display_name(cur)
         vim.b.im_select_context = cur
+        vim.b.im_select_display_name = display_name
         vim.b.im_select_pin = true
-        vim.notify("[im-select] pinned buffer IM = " .. cur)
+        vim.notify("[im-select] pinned buffer IM = " .. display_name .. " (" .. cur .. ")")
     end, {})
 
     vim.api.nvim_create_user_command("IMUnpinBuffer", function()
