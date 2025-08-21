@@ -190,11 +190,11 @@ end
 local function save_context_im()
     local current = get_current_select(C.default_command)
     if current and current ~= "" then
-        -- always remember last IM for the current WINDOW
-        vim.w.im_select_context = current
-        -- if buffer is "pinned", keep its own IM too
-        if vim.b.im_select_pin then
-            vim.b.im_select_context = current
+        -- Always remember per-BUFFER IM (so different buffers in the same window can differ)
+        vim.b.im_select_context = current
+        -- Keep a per-WINDOW default only if none exists yet (used as fallback for new buffers)
+        if vim.w.im_select_context == nil or vim.w.im_select_context == "" then
+            vim.w.im_select_context = current
         end
     end
 end
@@ -203,10 +203,10 @@ local function restore_context_im()
     local target
     if vim.b.im_select_pin and vim.b.im_select_context and vim.b.im_select_context ~= "" then
         target = vim.b.im_select_context
-    elseif vim.w.im_select_context and vim.w.im_select_context ~= "" then
-        target = vim.w.im_select_context
     elseif vim.b.im_select_context and vim.b.im_select_context ~= "" then
         target = vim.b.im_select_context
+    elseif vim.w.im_select_context and vim.w.im_select_context ~= "" then
+        target = vim.w.im_select_context
     end
     if target and target ~= "" then
         local current = get_current_select(C.default_command)
