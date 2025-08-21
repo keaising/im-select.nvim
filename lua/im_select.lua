@@ -185,6 +185,37 @@ local function restore_previous_im()
     end
 end
 
+-- ===== Per-window / Per-buffer addon (stores the "real" IM per context) =====
+-- Priority when restoring: buffer pinned > window > buffer (fallback)
+local function save_context_im()
+    local current = get_current_select(C.default_command)
+    if current and current ~= "" then
+        -- always remember last IM for the current WINDOW
+        vim.w.im_select_context = current
+        -- if buffer is "pinned", keep its own IM too
+        if vim.b.im_select_pin then
+            vim.b.im_select_context = current
+        end
+    end
+end
+
+local function restore_context_im()
+    local target
+    if vim.b.im_select_pin and vim.b.im_select_context and vim.b.im_select_context ~= "" then
+        target = vim.b.im_select_context
+    elseif vim.w.im_select_context and vim.w.im_select_context ~= "" then
+        target = vim.w.im_select_context
+    elseif vim.b.im_select_context and vim.b.im_select_context ~= "" then
+        target = vim.b.im_select_context
+    end
+    if target and target ~= "" then
+        local current = get_current_select(C.default_command)
+        if current ~= target then
+            change_im_select(C.default_command, target)
+        end
+    end
+end
+
 M.setup = function(opts)
     if not is_supported() then
         return
@@ -203,19 +234,71 @@ M.setup = function(opts)
     -- set autocmd
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
-    if #C.set_previous_events > 0 then
-        vim.api.nvim_create_autocmd(C.set_previous_events, {
-            callback = restore_previous_im,
-            group = group_id,
-        })
+    -- ===== Per-window / Per-buffer behavior =====
+    -- Save the *actual* IM right BEFORE InsertLeave (so we don't accidentally save English)
+    vim.api.nvim_create_autocmd("InsertLeavePre", {
+        group = group_id,
+        callback = save_context_im,
+    })
+
+    -- When entering Insert/Cmdline, restore per-context IM then snapshot it again
+    local function restore_then_save()
+        -- small defer lets other UI/plugins settle first
+        vim.defer_fn(function()
+            restore_context_im()
+            save_context_im()
+        end, 25) -- 20–40ms works well
     end
 
-    if #C.set_default_events > 0 then
-        vim.api.nvim_create_autocmd(C.set_default_events, {
-            callback = restore_default_im,
-            group = group_id,
-        })
-    end
+    vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter" }, {
+        group = group_id,
+        callback = restore_then_save,
+    })
+
+    -- If window changes while in Insert, apply the window's IM
+    vim.api.nvim_create_autocmd("WinEnter", {
+        group = group_id,
+        callback = function()
+            if vim.fn.mode() == "i" then
+                restore_then_save()
+            end
+        end,
+    })
+
+    -- ===== Always English in Normal mode =====
+    -- Mirror im-select.nvim behavior: set default IM on these "normal-ish" events.
+    vim.api.nvim_create_autocmd({ "VimEnter", "FocusGained", "InsertLeave", "CmdlineLeave" }, {
+        group = group_id,
+        callback = function()
+            -- Only force when we're actually in Normal; otherwise defer briefly.
+            if vim.fn.mode() == "n" then
+                restore_default_im()
+            else
+                vim.defer_fn(function()
+                    if vim.fn.mode() == "n" then
+                        restore_default_im()
+                    end
+                end, 20)
+            end
+        end,
+    })
+
+    -- User commands to pin/unpin buffer IM
+    vim.api.nvim_create_user_command("IMPinBuffer", function()
+        local cur = get_current_select(C.default_command)
+        if not cur or cur == "" then
+            vim.notify("[im-select] cannot detect current IM", vim.log.levels.WARN)
+            return
+        end
+        vim.b.im_select_context = cur
+        vim.b.im_select_pin = true
+        vim.notify("[im-select] pinned buffer IM = " .. cur)
+    end, {})
+
+    vim.api.nvim_create_user_command("IMUnpinBuffer", function()
+        vim.b.im_select_pin = false
+        vim.notify("[im-select] buffer unpinned (window IM will be used)")
+    end, {})
 end
 
 return M
