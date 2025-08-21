@@ -18,32 +18,12 @@ local function get_saved_display_name()
     return vim.b.im_select_display_name or vim.w.im_select_display_name
 end
 
-local function get_saved_im_for_color()
-    -- Priority: buffer > window
-    return vim.b.im_select_context or vim.w.im_select_context
-end
-
-local function get_color(im)
-    if not im then
+local function get_color(display_name)
+    if not display_name or display_name == "" or display_name == "EN" then
         return config.color_english
+    else
+        return config.color_other
     end
-    
-    -- Default English IM identifiers
-    local english_ims = {
-        "com.apple.keylayout.ABC",
-        "1033",
-        "keyboard-us",
-        "1",
-        "xkb:us::eng"
-    }
-    
-    for _, eng_im in ipairs(english_ims) do
-        if im == eng_im then
-            return config.color_english
-        end
-    end
-    
-    return config.color_other
 end
 
 -- Main component function
@@ -66,8 +46,8 @@ function M.component()
         end,
         
         color = function()
-            local context_im = get_saved_im_for_color()
-            return get_color(context_im)
+            local display_name = get_saved_display_name()
+            return get_color(display_name)
         end,
     }
 end
