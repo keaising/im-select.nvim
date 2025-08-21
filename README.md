@@ -199,3 +199,70 @@ Options with its default values
     end,
 }
 ```
+
+## 5. Lualine Integration
+
+`im-select.nvim` provides a lualine component to display the input method that will be used when entering insert mode. This helps you know which language you'll be typing before actually entering insert mode.
+
+### 5.1 Basic Usage
+
+```lua
+require('lualine').setup {
+    sections = {
+        lualine_x = { 
+            'encoding', 
+            'fileformat', 
+            'filetype',
+            require('im_select.lualine').get_component()
+        },
+    }
+}
+```
+
+### 5.2 Custom Configuration
+
+```lua
+require('lualine').setup {
+    sections = {
+        lualine_x = { 
+            require('im_select.lualine').get_component({                
+                -- Custom display names
+                display_names = {
+                    ["com.apple.keylayout.ABC"] = "🇺🇸 EN",
+                    ["com.apple.inputmethod.VietnameseIM.VietnameseSimpleTelex"] = "🇻🇳 VI",
+                    ["com.apple.inputmethod.Chinese.Pinyin"] = "🇨🇳 CN",
+                },
+                
+                -- Colors
+                color_english = { fg = "#98be65", gui = "bold" },
+                color_other = { fg = "#ECBE7B", gui = "bold" },
+                
+                -- Icon settings
+                icon = "⌨️",
+                show_icon = true,
+                
+                -- Update frequency (ms)
+                update_interval = 200,
+            })
+        },
+    }
+}
+```
+
+### 5.3 Available Options
+
+- `display_names`: Custom mapping of IM identifiers to display names
+- `color_english`: Color for English input method
+- `color_other`: Color for non-English input methods
+- `icon`: Icon to show before IM name (default: `⌨️`)
+- `show_icon`: Whether to show icon (default: `true`)
+- `update_interval`: How often to refresh in milliseconds (default: `200`)
+
+### 5.4 How It Works
+
+The component displays the input method that will be used when you enter insert mode:
+
+- **Per-buffer context**: Shows the saved IM for current buffer/window
+- **Always visible**: No need to enter insert mode to see which IM will be used
+- **Smart fallback**: Shows default English IM if no context is saved
+- **Performance optimized**: Uses caching to avoid frequent system calls
