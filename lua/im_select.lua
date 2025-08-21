@@ -281,6 +281,17 @@ M.setup = function(opts)
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
 
     -- ===== Per-window / Per-buffer behavior =====
+    -- Initialize context for new buffers  
+    vim.api.nvim_create_autocmd("BufEnter", {
+        group = group_id,
+        callback = function()
+            -- Only initialize if no context exists for this buffer
+            if not vim.b.im_select_display_name then
+                save_context_im()
+            end
+        end,
+    })
+
     -- Save the *actual* IM right BEFORE InsertLeave (so we don't accidentally save English)
     vim.api.nvim_create_autocmd("InsertLeavePre", {
         group = group_id,

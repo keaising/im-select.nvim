@@ -14,8 +14,17 @@ local config = {
 }
 
 local function get_saved_display_name()
-    -- Priority: buffer > window
-    return vim.b.im_select_display_name or vim.w.im_select_display_name
+    -- Priority: buffer > window > fallback to current system IM
+    local display = vim.b.im_select_display_name or vim.w.im_select_display_name
+    
+    -- If no saved context, try to get current IM and convert to display name
+    if not display then
+        -- Simple fallback - we can't call main plugin functions here
+        -- so just assume English as default when no context
+        return "EN"
+    end
+    
+    return display
 end
 
 local function get_color(display_name)
