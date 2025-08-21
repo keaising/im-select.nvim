@@ -222,19 +222,25 @@ end
 
 -- ===== Per-window / Per-buffer addon (stores the "real" IM per context) =====
 -- Priority when restoring: buffer pinned > window > buffer (fallback)
-local function save_context_im()
+local function save_context_im(update_display)
     local current = get_current_select(C.default_command)
     if current and current ~= "" then
-        local display_name = get_display_name(current)
-        
-        -- Always remember per-BUFFER IM (so different buffers in the same window can differ)
+        -- Always save the IM context
         vim.b.im_select_context = current
-        vim.b.im_select_display_name = display_name
+        
+        -- Only update display name when requested (default: true for backward compatibility)
+        if update_display ~= false then
+            local display_name = get_display_name(current)
+            vim.b.im_select_display_name = display_name
+        end
         
         -- Keep a per-WINDOW default only if none exists yet (used as fallback for new buffers)
         if vim.w.im_select_context == nil or vim.w.im_select_context == "" then
             vim.w.im_select_context = current
-            vim.w.im_select_display_name = display_name
+            if update_display ~= false then
+                local display_name = get_display_name(current)
+                vim.w.im_select_display_name = display_name
+            end
         end
     end
 end
@@ -286,7 +292,7 @@ M.setup = function(opts)
         -- small defer lets other UI/plugins settle first
         vim.defer_fn(function()
             restore_context_im()
-            save_context_im()
+            save_context_im(false) -- Don't update display name to prevent lualine flicker
         end, 25) -- 20–40ms works well
     end
 
