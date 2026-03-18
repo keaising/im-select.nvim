@@ -2,10 +2,6 @@ local M = {}
 
 M.closed = false
 
-local function all_trim(s)
-    return s:match("^%s*(.-)%s*$")
-end
-
 local function determine_os()
     if vim.fn.has("macunix") == 1 then
         return "macOS"
@@ -18,21 +14,30 @@ local function determine_os()
     end
 end
 
+local OS_CONFIGS = {
+    macOS = { command = { "macism" }, im = "com.apple.keylayout.ABC" },
+    Windows = { command = { "im-select.exe" }, im = "1033" },
+    WSL = { command = { "im-select.exe" }, im = "1033" },
+}
+
+local LINUX_FRAMEWORKS = {
+    { bin = "fcitx5-remote", command = { "fcitx5-remote" }, im = "keyboard-us" },
+    { bin = "ibus", command = { "ibus", "engine" }, im = "xkb:us::eng" },
+    { bin = "fcitx-remote", command = { "fcitx-remote" }, im = "1" },
+}
+
 local function is_supported()
-    local os = determine_os()
-    -- macOS, Windows, WSL
-    if os ~= "Linux" then
+    local current_os = determine_os()
+    if current_os ~= "Linux" then
         return true
     end
 
-    -- Support fcitx5, fcitx and ibus in Linux
-    -- other frameworks are not support yet, PR welcome
-    local ims = { "fcitx5-remote", "fcitx-remote", "ibus" }
-    for _, im in ipairs(ims) do
-        if vim.fn.executable(im) then
+    for _, fw in ipairs(LINUX_FRAMEWORKS) do
+        if vim.fn.executable(fw.bin) == 1 then
             return true
         end
     end
+    return false
 end
 
 -- local config
@@ -54,28 +59,19 @@ local C = {
 
 local function set_default_config()
     local current_os = determine_os()
-    if current_os == "macOS" then
-        C.default_command = { "macism" }
-        C.default_method_selected = "com.apple.keylayout.ABC"
-    elseif current_os == "Windows" or current_os == "WSL" then
-        -- WSL share same config with Windows
-        C.default_command = { "im-select.exe" }
-        C.default_method_selected = "1033"
-    else
-        -- 0 for close, 1 for inactive, 2 for active
-        C.default_command = { "fcitx-remote" }
-        C.default_method_selected = "1"
-        if vim.fn.executable("fcitx5-remote") == 1 then
-            -- fcitx5-remote -n: rime/keyboard-us
-            -- fcitx5-remote -s rime
-            -- fcitx5-remote -s keyboard-us
-            C.default_command = { "fcitx5-remote" }
-            C.default_method_selected = "keyboard-us"
-        elseif vim.fn.executable("ibus") == 1 then
-            -- ibus engine xkb:us::eng
-            -- ibus engine rime
-            C.default_command = { "ibus", "engine" }
-            C.default_method_selected = "xkb:us::eng"
+    local os_config = OS_CONFIGS[current_os]
+    if os_config then
+        C.default_command = os_config.command
+        C.default_method_selected = os_config.im
+        return
+    end
+
+    -- Linux: pick the first available IM framework
+    for _, fw in ipairs(LINUX_FRAMEWORKS) do
+        if vim.fn.executable(fw.bin) == 1 then
+            C.default_command = fw.command
+            C.default_method_selected = fw.im
+            return
         end
     end
 end
@@ -127,7 +123,7 @@ local function get_current_select(cmd)
     if cmd[1]:find("fcitx5-remote", 1, true) ~= nil then
         command = { "fcitx5-remote", "-n" }
     end
-    return all_trim(vim.fn.system(command))
+    return vim.trim(vim.fn.system(command))
 end
 
 local function change_im_select(cmd, method)
