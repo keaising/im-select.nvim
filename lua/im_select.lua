@@ -1,6 +1,7 @@
 local M = {}
 
-M.closed = false
+-- FFI backend for Windows (nil means use command-based approach)
+local backend = nil
 
 local function determine_os()
     if vim.fn.has("macunix") == 1 then
@@ -119,6 +120,10 @@ local function set_opts(opts)
 end
 
 local function get_current_select(cmd)
+    if backend then
+        return backend.get()
+    end
+
     local command = cmd
     if cmd[1]:find("fcitx5-remote", 1, true) ~= nil then
         command = { "fcitx5-remote", "-n" }
@@ -127,6 +132,11 @@ local function get_current_select(cmd)
 end
 
 local function change_im_select(cmd, method)
+    if backend then
+        backend.set(method)
+        return
+    end
+
     local args = { unpack(cmd, 2) }
 
     if cmd[1]:find("fcitx5-remote", 1, true) then
@@ -141,6 +151,7 @@ local function change_im_select(cmd, method)
     end
     table.insert(args, method)
 
+    local done = false
     local handle
     handle, _ = vim.loop.spawn(
         cmd[1],
@@ -149,7 +160,7 @@ local function change_im_select(cmd, method)
             if handle and not handle:is_closing() then
                 handle:close()
             end
-            M.closed = true
+            done = true
         end)
     )
     if not handle then
@@ -158,7 +169,7 @@ local function change_im_select(cmd, method)
 
     if not C.async_switch_im then
         vim.wait(5000, function()
-            return M.closed
+            return done
         end, 200)
     end
 end
@@ -181,6 +192,22 @@ local function restore_previous_im()
     end
 end
 
+local function try_ffi_backend(user_specified_im)
+    if determine_os() ~= "Windows" then
+        return false
+    end
+
+    local ok, win_ffi = pcall(require, "windows_ffi")
+    if ok and win_ffi.available then
+        backend = win_ffi
+        if not user_specified_im then
+            C.default_method_selected = win_ffi.default_im
+        end
+        return true
+    end
+    return false
+end
+
 M.setup = function(opts)
     if not is_supported() then
         return
@@ -189,7 +216,10 @@ M.setup = function(opts)
     set_default_config()
     set_opts(opts)
 
-    if vim.fn.executable(C.default_command[1]) ~= 1 then
+    local user_specified_im = type(opts) == "table" and opts.default_im_select ~= nil
+    local using_ffi = try_ffi_backend(user_specified_im)
+
+    if not using_ffi and vim.fn.executable(C.default_command[1]) ~= 1 then
         if not C.keep_quiet_on_no_binary then
             vim.api.nvim_err_writeln([[[im-select]: binary tools missed, please follow installation manual in README]])
         end
@@ -198,6 +228,10 @@ M.setup = function(opts)
 
     -- set autocmd
     local group_id = vim.api.nvim_create_augroup("im-select", { clear = true })
+
+    if using_ffi then
+        backend.init(group_id)
+    end
 
     if #C.set_previous_events > 0 then
         vim.api.nvim_create_autocmd(C.set_previous_events, {
