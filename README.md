@@ -177,7 +177,7 @@ Options with its default values
             -- or { "AIMSwitcher.exe", "--imm" } for binary need extra arguments to work.
             -- For Windows/WSL, default: "im-select.exe"
             -- For macOS, default: "macism"
-            -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or "ibus"
+            -- For Linux, default: "fcitx5-remote" or "fcitx-remote" or { "ibus", "engine" }
             default_command = "im-select.exe",
 
             -- Restore the default input method state when the following events are triggered
